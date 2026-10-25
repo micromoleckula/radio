@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { AuthModule } from "./auth/auth.module";
 
 @Module({
   imports: [
@@ -16,9 +17,20 @@ import { TypeOrmModule } from "@nestjs/typeorm";
         }
 
         return {
+          type: "postgres" as const,
+          host: configService.getOrThrow<string>("DB_HOST"),
+          port,
+          username: configService.getOrThrow<string>("DB_USER"),
+          password: configService.getOrThrow<string>("DB_PASSWORD"),
+          database: configService.getOrThrow<string>("DB_NAME"),
+          autoLoadEntities: true,
+          migrations: [__dirname + "/database/migrations/*{.js,.ts}"],
+          migrationsTableName: "typeorm_migrations",
+          synchronize: true,
         };
       },
     }),
+    AuthModule,
   ],
 })
 export class AppModule {}
