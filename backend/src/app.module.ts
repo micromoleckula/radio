@@ -2,6 +2,8 @@ import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { AuthModule } from "./auth/auth.module";
+import { PlaylistsModule } from "./playlists/playlists.module";
+import { TracksModule } from "./tracks/tracks.module";
 
 @Module({
   imports: [
@@ -26,11 +28,13 @@ import { AuthModule } from "./auth/auth.module";
           autoLoadEntities: true,
           migrations: [__dirname + "/database/migrations/*{.js,.ts}"],
           migrationsTableName: "typeorm_migrations",
-          synchronize: true,
+          synchronize: false,
         };
       },
     }),
     AuthModule,
+    PlaylistsModule,
+    TracksModule,
   ],
 })
 export class AppModule {}
