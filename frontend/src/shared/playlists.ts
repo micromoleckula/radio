@@ -1,0 +1,72 @@
+import { apiDelete, apiGet, apiPatch, apiRequest } from "./api";
+import type { Track } from "./tracks";
+
+export interface PlaylistSummary {
+  id: number;
+  title: string;
+  createdAt: string;
+  trackCount: number;
+}
+
+export interface PlaylistDetail extends Omit<PlaylistSummary, "trackCount"> {
+  tracks: Track[];
+}
+
+export function fetchPlaylists(): Promise<PlaylistSummary[]> {
+  return apiGet<PlaylistSummary[]>("/playlists", true);
+}
+
+export function fetchPlaylist(id: number): Promise<PlaylistDetail> {
+  return apiGet<PlaylistDetail>(`/playlists/${id.toString()}`, true);
+}
+
+export function createPlaylist(title: string): Promise<PlaylistSummary> {
+  return apiRequest<PlaylistSummary>("/playlists", { title }, true);
+}
+
+export function renamePlaylist(
+  id: number,
+  title: string,
+): Promise<PlaylistDetail> {
+  return apiPatch<PlaylistDetail>(
+    `/playlists/${id.toString()}`,
+    { title },
+    true,
+  );
+}
+
+export function deletePlaylist(id: number): Promise<void> {
+  return apiDelete(`/playlists/${id.toString()}`, true);
+}
+
+export function addTrackToPlaylist(
+  playlistId: number,
+  trackId: number,
+): Promise<PlaylistDetail> {
+  return apiRequest<PlaylistDetail>(
+    `/playlists/${playlistId.toString()}/tracks/${trackId.toString()}`,
+    {},
+    true,
+  );
+}
+
+export function removeTrackFromPlaylist(
+  playlistId: number,
+  trackId: number,
+): Promise<PlaylistDetail> {
+  return apiDelete<PlaylistDetail>(
+    `/playlists/${playlistId.toString()}/tracks/${trackId.toString()}`,
+    true,
+  );
+}
+
+export function reorderPlaylistTracks(
+  playlistId: number,
+  trackIds: number[],
+): Promise<PlaylistDetail> {
+  return apiPatch<PlaylistDetail>(
+    `/playlists/${playlistId.toString()}/tracks/order`,
+    { trackIds },
+    true,
+  );
+}

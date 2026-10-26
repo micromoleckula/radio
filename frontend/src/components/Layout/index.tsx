@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Header } from "../Header";
-import { MusicPlayer } from "../Player";
+import { MusicPlayer } from "../Player/MusicPlayer";
 import { Sidebar } from "../SideBar";
 
 interface LayoutProps {
