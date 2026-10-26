@@ -5,8 +5,12 @@ import { apiGet } from "./shared/api";
 import { useAuthStore } from "./store/auth.store";
 import { AuthGuard, GuestGuard } from "./pages/Guards/AuthGuards";
 import { HomePage } from "./pages/HomePage";
+import { EditAudiosPage } from "./pages/EditAudiosPage";
+import { LibraryPage } from "./pages/LibraryPage";
 import { LoginPage } from "./pages/LoginPage";
+import { PlaylistPage } from "./pages/PlaylistPage";
 import { RegisterPage } from "./pages/RegisterPage";
+import { SearchPage } from "./pages/SearchPage";
 
 export const App = () => {
   const token = useAuthStore((state) => state.token);
@@ -22,6 +26,7 @@ export const App = () => {
 
   return (
     <Routes>
+      <Route path="/edit-audios" element={<EditAudiosPage />} />
 
       <Route element={<GuestGuard />}>
         <Route element={<AuthLayout />}>
@@ -32,6 +37,9 @@ export const App = () => {
 
       <Route element={<AuthGuard />}>
         <Route path="/home" element={<HomePage />} />
+        <Route path="/search" element={<SearchPage />} />
+        <Route path="/library" element={<LibraryPage />} />
+        <Route path="/library/:playlistId" element={<PlaylistPage />} />
       </Route>
 
       <Route path="/" element={<Navigate to="/home" replace />} />
