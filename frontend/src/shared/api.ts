@@ -1,4 +1,5 @@
 import { useAuthStore } from "../store/auth.store";
+import { useAudioAdminStore } from "../store/audioAdmin.store";
 
 export const API_BASE_URL = (import.meta.env.VITE_API_URL ?? "/api").replace(
   /\/$/,
@@ -90,7 +91,9 @@ async function request<T>(
   const token =
     authScope === "user"
       ? useAuthStore.getState().token
-      : authScope === "audio-admin";
+      : authScope === "audio-admin"
+        ? useAudioAdminStore.getState().token
+        : null;
 
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
@@ -104,6 +107,9 @@ async function request<T>(
   if (response.status === 401) {
     if (authScope === "user") {
       useAuthStore.getState().logout();
+    }
+    if (authScope === "audio-admin") {
+      useAudioAdminStore.getState().logout();
     }
   }
 
