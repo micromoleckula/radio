@@ -9,6 +9,11 @@ import { createReadStream } from "node:fs";
 import { mkdir, stat, unlink, writeFile } from "node:fs/promises";
 import { basename, extname, resolve } from "node:path";
 import { Readable } from "node:stream";
+import {
+  COVER_EXTENSION_BY_MIME_TYPE,
+  COVER_MIME_TYPE_BY_EXTENSION,
+  MAX_COVER_SIZE_BYTES,
+} from "./track.constants";
 
 export const TRACK_STORAGE_DIRECTORY = resolve(
   __dirname,
@@ -104,7 +109,7 @@ export class TrackStorageService {
     if (
       !detectedType ||
       detectedType.mime !== mimeType ||
-      data.byteLength > 10 * 1024 * 1024
+      data.byteLength > MAX_COVER_SIZE_BYTES
     ) {
       throw new BadRequestException("Cover must be a valid image under 10 MB");
     }
@@ -191,21 +196,11 @@ export class TrackStorageService {
 }
 
 function coverExtension(mimeType: string): string | null {
-  const extensions: Record<string, string> = {
-    "image/jpeg": ".jpg",
-    "image/png": ".png",
-    "image/webp": ".webp",
-  };
-  return extensions[mimeType] ?? null;
+  return COVER_EXTENSION_BY_MIME_TYPE[mimeType] ?? null;
 }
 
 function coverMimeType(extension: string): string {
-  const mimeTypes: Record<string, string> = {
-    ".jpg": "image/jpeg",
-    ".png": "image/png",
-    ".webp": "image/webp",
-  };
-  return mimeTypes[extension] ?? "application/octet-stream";
+  return COVER_MIME_TYPE_BY_EXTENSION[extension] ?? "application/octet-stream";
 }
 
 function parseByteRange(value: string, fileSize: number): ByteRange | null {

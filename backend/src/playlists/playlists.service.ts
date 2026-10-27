@@ -7,7 +7,8 @@ import { InjectDataSource, InjectRepository } from "@nestjs/typeorm";
 import { DataSource, Repository } from "typeorm";
 import { User } from "../auth/entities/user.entity";
 import { Track } from "../tracks/entities/track.entity";
-import type { TrackListItem } from "../tracks/tracks.service";
+import { toTrackListItem } from "../tracks/track.mapper";
+import type { TrackListItem } from "../tracks/tracks.types";
 import { CreatePlaylistDto } from "./dto/create-playlist.dto";
 import { PlaylistTrack } from "./entities/playlist-track.entity";
 import { Playlist } from "./entities/playlist.entity";
@@ -202,16 +203,4 @@ export class PlaylistsService {
 
     return playlist;
   }
-}
-
-function toTrackListItem(track: Track): TrackListItem {
-  return {
-    id: track.id,
-    title: track.title,
-    artist: track.artist,
-    album: track.album,
-    durationSeconds: track.durationSeconds,
-    createdAt: track.createdAt,
-    coverAvailable: Boolean(track.coverPath),
-  };
 }

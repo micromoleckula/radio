@@ -7,21 +7,24 @@ import {
   deletePlaylist,
   fetchPlaylists,
 } from "../shared/playlists";
+import { queryKeys } from "../shared/queryKeys";
 
 export const LibraryPage = () => {
   const queryClient = useQueryClient();
   const [title, setTitle] = useState("");
   const playlists = useQuery({
-    queryKey: ["playlists"],
+    queryKey: queryKeys.playlists,
     queryFn: fetchPlaylists,
   });
   const createMutation = useMutation({
     mutationFn: createPlaylist,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["playlists"] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.playlists }),
   });
   const deleteMutation = useMutation({
     mutationFn: deletePlaylist,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["playlists"] }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.playlists }),
   });
 
   const handleCreate = (event: FormEvent<HTMLFormElement>) => {

@@ -1,4 +1,5 @@
 import { API_BASE_URL, apiGet } from "./api";
+import { TRACKS_PAGE_SIZE } from "./constants";
 
 export interface Track {
   id: number;
@@ -21,7 +22,10 @@ export async function fetchTracks(
   query: string,
   offset: number,
 ): Promise<TrackListResponse> {
-  const params = new URLSearchParams({ limit: "30", offset: String(offset) });
+  const params = new URLSearchParams({
+    limit: String(TRACKS_PAGE_SIZE),
+    offset: String(offset),
+  });
 
   if (query) {
     params.set("q", query);

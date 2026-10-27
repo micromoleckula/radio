@@ -4,6 +4,8 @@ import {
   createManagedTrack,
   updateManagedTrack,
 } from "../../shared/audioAdmin";
+import { MAX_TRACK_DURATION_SECONDS } from "../../shared/constants";
+import { queryKeys } from "../../shared/queryKeys";
 import type { Track } from "../../shared/tracks";
 
 interface AudioTrackFormProps {
@@ -26,7 +28,7 @@ export const AudioTrackForm = ({
         ? updateManagedTrack(track.id, formData)
         : createManagedTrack(formData),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["tracks"] });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tracks() });
       onSaved();
     },
   });
@@ -106,7 +108,7 @@ export const AudioTrackForm = ({
         <input
           className="rounded bg-zinc-800 px-3 py-2.5 text-sm text-white outline-none focus:ring-2 focus:ring-emerald-400"
           defaultValue={track?.durationSeconds ?? ""}
-          max={3600}
+          max={MAX_TRACK_DURATION_SECONDS}
           min={1}
           name="durationSeconds"
           type="number"

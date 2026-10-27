@@ -10,6 +10,7 @@ import {
   removeTrackFromPlaylist,
   reorderPlaylistTracks,
 } from "../shared/playlists";
+import { queryKeys } from "../shared/queryKeys";
 import { usePlayerStore } from "../store/player.store";
 
 export const PlaylistPage = () => {
@@ -21,7 +22,7 @@ export const PlaylistPage = () => {
   const [isRenaming, setIsRenaming] = useState(false);
   const [titleDraft, setTitleDraft] = useState("");
   const playlist = useQuery({
-    queryKey: ["playlist", playlistId],
+    queryKey: queryKeys.playlist(playlistId),
     queryFn: () => fetchPlaylist(playlistId),
     enabled: isValidPlaylistId,
   });
@@ -30,19 +31,26 @@ export const PlaylistPage = () => {
   const addMutation = useMutation({
     mutationFn: (trackId: number) => addTrackToPlaylist(playlistId, trackId),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["playlist", playlistId] }),
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.playlist(playlistId),
+      }),
   });
   const removeMutation = useMutation({
     mutationFn: (trackId: number) =>
       removeTrackFromPlaylist(playlistId, trackId),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["playlist", playlistId] }),
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.playlist(playlistId),
+      }),
   });
   const renameMutation = useMutation({
     mutationFn: (title: string) => renamePlaylist(playlistId, title),
     onSuccess: async (updatedPlaylist) => {
-      queryClient.setQueryData(["playlist", playlistId], updatedPlaylist);
-      await queryClient.invalidateQueries({ queryKey: ["playlists"] });
+      queryClient.setQueryData(
+        queryKeys.playlist(playlistId),
+        updatedPlaylist,
+      );
+      await queryClient.invalidateQueries({ queryKey: queryKeys.playlists });
       setIsRenaming(false);
     },
   });
@@ -50,7 +58,10 @@ export const PlaylistPage = () => {
     mutationFn: (trackIds: number[]) =>
       reorderPlaylistTracks(playlistId, trackIds),
     onSuccess: (updatedPlaylist) => {
-      queryClient.setQueryData(["playlist", playlistId], updatedPlaylist);
+      queryClient.setQueryData(
+        queryKeys.playlist(playlistId),
+        updatedPlaylist,
+      );
     },
   });
   const tracks = playlist.data?.tracks ?? [];

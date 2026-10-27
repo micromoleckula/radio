@@ -11,40 +11,21 @@ import { ListTracksDto } from "./dto/list-tracks.dto";
 import { UpdateTrackDto } from "./dto/update-track.dto";
 import { Track } from "./entities/track.entity";
 import {
+  DEFAULT_TRACK_ARTIST,
+  MAX_COVER_SIZE_BYTES,
+  MAX_TRACK_DURATION_SECONDS,
+} from "./track.constants";
+import { toTrackListItem } from "./track.mapper";
+import {
   TrackMetadataService,
   type ExtractedTrackMetadata,
 } from "./track-metadata.service";
 import { TrackStorageService, type AudioStream } from "./track-storage.service";
-
-export interface UploadedMediaFile {
-  filename: string;
-  path: string;
-  originalname: string;
-  mimetype: string;
-  size: number;
-}
-
-export interface TrackUploadFiles {
-  audio?: UploadedMediaFile;
-  cover?: UploadedMediaFile;
-}
-
-export interface TrackListItem {
-  id: number;
-  title: string;
-  artist: string;
-  album: string | null;
-  durationSeconds: number;
-  createdAt: Date;
-  coverAvailable: boolean;
-}
-
-export interface TrackListResponse {
-  items: TrackListItem[];
-  total: number;
-  limit: number;
-  offset: number;
-}
+import type {
+  TrackListItem,
+  TrackListResponse,
+  TrackUploadFiles,
+} from "./tracks.types";
 
 @Injectable()
 export class TracksService {
@@ -89,7 +70,7 @@ export class TracksService {
       throw new BadRequestException("An MP3 audio file is required");
     }
 
-    if (files.cover && files.cover.size > 10 * 1024 * 1024) {
+    if (files.cover && files.cover.size > MAX_COVER_SIZE_BYTES) {
       await this.cleanupUploadedFiles(files);
       throw new BadRequestException("Cover image must not exceed 10 MB");
     }
@@ -101,7 +82,7 @@ export class TracksService {
       const durationSeconds =
         dto.durationSeconds ?? metadata.durationSeconds ?? undefined;
 
-      if (!durationSeconds || durationSeconds > 3600) {
+      if (!durationSeconds || durationSeconds > MAX_TRACK_DURATION_SECONDS) {
         throw new BadRequestException(
           "Could not determine a valid track duration from the audio file",
         );
@@ -123,7 +104,7 @@ export class TracksService {
               files.audio.originalname,
               extname(files.audio.originalname),
             ),
-          artist: dto.artist?.trim() || metadata.artist || "Unknown artist",
+          artist: dto.artist?.trim() || metadata.artist || DEFAULT_TRACK_ARTIST,
           album: dto.album?.trim() || metadata.album || null,
           durationSeconds,
           audioPath: files.audio.filename,
@@ -146,7 +127,7 @@ export class TracksService {
     dto: UpdateTrackDto,
     files: TrackUploadFiles,
   ): Promise<TrackListItem> {
-    if (files.cover && files.cover.size > 10 * 1024 * 1024) {
+    if (files.cover && files.cover.size > MAX_COVER_SIZE_BYTES) {
       await this.cleanupUploadedFiles(files);
       throw new BadRequestException("Cover image must not exceed 10 MB");
     }
@@ -170,7 +151,7 @@ export class TracksService {
         metadata?.durationSeconds ??
         track.durationSeconds;
 
-      if (durationSeconds > 3600) {
+      if (durationSeconds > MAX_TRACK_DURATION_SECONDS) {
         throw new BadRequestException(
           "Track duration must not exceed one hour",
         );
@@ -297,18 +278,6 @@ export class TracksService {
         : undefined,
     ]);
   }
-}
-
-function toTrackListItem(track: Track): TrackListItem {
-  return {
-    id: track.id,
-    title: track.title,
-    artist: track.artist,
-    album: track.album,
-    durationSeconds: track.durationSeconds,
-    createdAt: track.createdAt,
-    coverAvailable: Boolean(track.coverPath),
-  };
 }
 
 function escapeLikePattern(value: string): string {

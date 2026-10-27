@@ -7,6 +7,7 @@ import {
   MaxLength,
   Min,
 } from "class-validator";
+import { MAX_TRACK_DURATION_SECONDS } from "../track.constants";
 
 export class UpdateTrackDto {
   @IsOptional()
@@ -37,6 +38,6 @@ export class UpdateTrackDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  @Max(3600)
+  @Max(MAX_TRACK_DURATION_SECONDS)
   durationSeconds?: number;
 }

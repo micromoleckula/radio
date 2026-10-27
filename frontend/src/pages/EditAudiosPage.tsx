@@ -6,6 +6,7 @@ import { Layout } from "../components/Layout";
 import { useTracks } from "../hooks/useTracks";
 import { apiAdminGet } from "../shared/api";
 import { deleteManagedTrack, unlockAudioAdmin } from "../shared/audioAdmin";
+import { queryKeys } from "../shared/queryKeys";
 import type { Track } from "../shared/tracks";
 import { useAudioAdminStore } from "../store/audioAdmin.store";
 
@@ -19,7 +20,7 @@ export const EditAudiosPage = () => {
   const queryClient = useQueryClient();
   const tracks = useTracks();
   const adminSession = useQuery({
-    queryKey: ["audio-admin-session"],
+    queryKey: queryKeys.audioAdminSession,
     queryFn: () => apiAdminGet<{ active: true }>("/audio-admin/session"),
     enabled: Boolean(token),
     retry: false,
@@ -37,7 +38,7 @@ export const EditAudiosPage = () => {
   const deleteTrack = useMutation({
     mutationFn: deleteManagedTrack,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["tracks"] });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tracks() });
     },
   });
   const allTracks = tracks.data?.pages.flatMap((page) => page.items) ?? [];

@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { AUDIO_MIME_TYPE } from "./track.constants";
 
 export interface ExtractedTrackMetadata {
   title: string | null;
@@ -17,7 +18,7 @@ export class TrackMetadataService {
     const { fileTypeFromFile } = await import("file-type");
     const fileType = await fileTypeFromFile(filePath);
 
-    if (fileType?.mime !== "audio/mpeg") {
+    if (fileType?.mime !== AUDIO_MIME_TYPE) {
       throw new Error("The uploaded file is not an MP3 audio stream");
     }
 

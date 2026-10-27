@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AuthLayout } from "./components/Login/AuthLayout";
 import { apiGet } from "./shared/api";
+import { queryKeys } from "./shared/queryKeys";
 import { useAuthStore } from "./store/auth.store";
 import { AuthGuard, GuestGuard } from "./pages/Guards/AuthGuards";
 import { HomePage } from "./pages/HomePage";
@@ -16,7 +17,7 @@ export const App = () => {
   const token = useAuthStore((state) => state.token);
 
   useQuery({
-    queryKey: ["auth-session"],
+    queryKey: queryKeys.authSession,
     queryFn: () => apiGet<{ userId: number; email: string }>("/auth/me", true),
     enabled: Boolean(token),
     retry: false,
