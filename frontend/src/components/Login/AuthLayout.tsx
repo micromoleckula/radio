@@ -2,12 +2,13 @@ import { Link, Outlet } from "react-router-dom";
 
 export const AuthLayout = () => {
   return (
-    <div className="">
+    <div className="flex min-h-screen flex-col items-center bg-[#121212] px-4 pt-8 sm:pt-16">
       <Link
         to="/"
-        className=""
+        className="mb-8 flex items-center gap-2 transition-opacity hover:opacity-80"
       >
-        <span className="">
+        <div className="rounded-full bg-white p-1.5 text-black">S</div>
+        <span className="text-white text-3xl font-bold tracking-tighter">
           Radio Pepe
         </span>
       </Link>
