@@ -15,7 +15,7 @@ import {
 import {
   COVER_STORAGE_DIRECTORY,
   TRACK_STORAGE_DIRECTORY,
-} from "./track-storage.service";
+} from "./track-storage.paths";
 import type { TrackUploadFiles } from "./tracks.types";
 
 const mediaUploadOptions = {

@@ -9,6 +9,8 @@ import { TracksController } from "./tracks.controller";
 import { TracksService } from "./tracks.service";
 import { TrackStorageService } from "./track-storage.service";
 import { TrackMetadataService } from "./track-metadata.service";
+import { TrackManagementService } from "./track-management.service";
+import { TrackCoverStorageService } from "./track-cover-storage.service";
 
 @Module({
   imports: [AuthModule, TypeOrmModule.forFeature([Track])],
@@ -17,6 +19,8 @@ import { TrackMetadataService } from "./track-metadata.service";
     AudioAdminGuard,
     AudioAdminService,
     TrackMetadataService,
+    TrackManagementService,
+    TrackCoverStorageService,
     TracksService,
     TrackStorageService,
   ],
