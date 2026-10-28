@@ -1,5 +1,4 @@
 import type { Track } from "../../shared/tracks";
-import { MAX_TRACK_DURATION_SECONDS } from "../../shared/constants";
 import { FormField } from "../Ui/FormField";
 
 interface TrackFormFieldsProps {
@@ -43,16 +42,6 @@ export function TrackFormFields({
           defaultValue={track?.album ?? ""}
           maxLength={200}
           name="album"
-        />
-      </FormField>
-      <FormField label="Duration override in seconds">
-        <input
-          className={inputClassName}
-          defaultValue={track?.durationSeconds ?? ""}
-          max={MAX_TRACK_DURATION_SECONDS}
-          min={1}
-          name="durationSeconds"
-          type="number"
         />
       </FormField>
       <FormField label={`MP3 file ${track ? "(optional)" : "(required)"}`}>

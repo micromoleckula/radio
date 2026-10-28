@@ -25,11 +25,6 @@ export function useAudioTrackForm(track: Track | undefined, onSaved: () => void)
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const duration = formData.get("durationSeconds");
-
-    if (typeof duration === "string" && !duration.trim()) {
-      formData.delete("durationSeconds");
-    }
 
     if (audioFile) {
       formData.set("audio", audioFile);

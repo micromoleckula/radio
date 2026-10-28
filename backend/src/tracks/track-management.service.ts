@@ -51,12 +51,17 @@ export class TrackManagementService {
 
     try {
       const metadata = await this.readMetadata(files.audio.path);
-      const durationSeconds =
-        dto.durationSeconds ?? metadata.durationSeconds ?? undefined;
+      const durationSeconds = metadata.durationSeconds;
 
-      if (!durationSeconds || durationSeconds > MAX_TRACK_DURATION_SECONDS) {
+      if (!durationSeconds) {
         throw new BadRequestException(
           "Could not determine a valid track duration from the audio file",
+        );
+      }
+
+      if (durationSeconds > MAX_TRACK_DURATION_SECONDS) {
+        throw new BadRequestException(
+          "Track duration must not exceed one hour",
         );
       }
 
@@ -118,10 +123,15 @@ export class TrackManagementService {
       const metadata = files.audio
         ? await this.readMetadata(files.audio.path)
         : null;
-      const durationSeconds =
-        dto.durationSeconds ??
-        metadata?.durationSeconds ??
-        track.durationSeconds;
+      const durationSeconds = files.audio
+        ? metadata?.durationSeconds
+        : track.durationSeconds;
+
+      if (!durationSeconds) {
+        throw new BadRequestException(
+          "Could not determine a valid track duration from the audio file",
+        );
+      }
 
       if (durationSeconds > MAX_TRACK_DURATION_SECONDS) {
         throw new BadRequestException(
