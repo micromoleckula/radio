@@ -1,4 +1,6 @@
 import type { Track } from "../../shared/tracks";
+import { EmptyState } from "../Ui/EmptyState";
+import { Notice } from "../Ui/Notice";
 import { TrackCover } from "./TrackCover";
 
 interface ManagedTrackListProps {
@@ -33,20 +35,13 @@ export function ManagedTrackList({
       {isLoading && (
         <p className="text-sm text-zinc-400">Loading audio files...</p>
       )}
-      {isError && error && (
-        <p className="text-sm text-red-400" role="alert">
-          {error.message}
-        </p>
-      )}
-      {deleteError && (
-        <p className="text-sm text-red-400" role="alert">
-          {deleteError.message}
-        </p>
-      )}
+      {isError && error && <Notice tone="error">{error.message}</Notice>}
+      {deleteError && <Notice tone="error">{deleteError.message}</Notice>}
       {!isLoading && tracks.length === 0 && (
-        <p className="rounded-lg border border-dashed border-white/15 px-5 py-12 text-center text-sm text-zinc-400">
-          No tracks yet. Add an MP3 file to start your library.
-        </p>
+        <EmptyState
+          description="Add an MP3 file to start building your library."
+          title="No tracks yet"
+        />
       )}
 
       <div className="divide-y divide-white/10">

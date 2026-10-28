@@ -16,11 +16,23 @@ export const UserTab = () => {
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex shrink-0 items-center gap-2">
       {adminToken && (
-        <ButtonIcon onClick={lockAudioManager}>Lock manager</ButtonIcon>
+        <ButtonIcon
+          className="rounded-full px-3 py-2 text-xs text-zinc-300 hover:bg-white/10"
+          onClick={lockAudioManager}
+        >
+          Lock manager
+        </ButtonIcon>
       )}
-      {token && <ButtonIcon onClick={handleLogout}>Log out</ButtonIcon>}
+      {token && (
+        <ButtonIcon
+          className="rounded-full border border-white/10 px-3 py-2 text-xs text-zinc-300 hover:bg-white/10"
+          onClick={handleLogout}
+        >
+          Log out
+        </ButtonIcon>
+      )}
     </div>
   );
 };

@@ -2,6 +2,8 @@ import { AudioTrackForm } from "../components/Tracks/AudioTrackForm";
 import { AudioAdminUnlockForm } from "../components/Tracks/AudioAdminUnlockForm";
 import { ManagedTrackList } from "../components/Tracks/ManagedTrackList";
 import { Layout } from "../components/Layout";
+import { Notice } from "../components/Ui/Notice";
+import { PageHeader } from "../components/Ui/PageHeader";
 import { useAudioAdminPage } from "../hooks/useAudioAdminPage";
 
 export const EditAudiosPage = () => {
@@ -23,51 +25,49 @@ export const EditAudiosPage = () => {
     <Layout>
       <section className="mx-auto w-full max-w-5xl space-y-7">
         {page.adminSessionError && (
-          <p className="text-sm text-red-400" role="alert">
-            {page.adminSessionError.message}
-          </p>
+          <Notice tone="error">{page.adminSessionError.message}</Notice>
         )}
-        <header className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-400">
-              Audio management
-            </p>
-            <h1 className="text-3xl font-bold">Edit audios</h1>
-            <p className="mt-2 text-sm text-zinc-400">
-              Manage tracks, metadata and artwork.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              className="rounded-full bg-emerald-400 px-5 py-2.5 text-sm font-semibold text-black hover:bg-emerald-300"
-              onClick={page.toggleCreateForm}
-              type="button"
-            >
-              {page.isCreating ? "Cancel" : "Add audio"}
-            </button>
-            <button
-              className="rounded-full px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/10"
-              onClick={page.logout}
-              type="button"
-            >
-              Lock
-            </button>
-          </div>
-        </header>
+        <PageHeader
+          actions={
+            <div className="flex items-center gap-2">
+              <button
+                className="rounded-full bg-emerald-400 px-4 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-emerald-300"
+                onClick={page.toggleCreateForm}
+                type="button"
+              >
+                {page.isCreating ? "Cancel" : "Add audio"}
+              </button>
+              <button
+                className="rounded-full border border-white/10 px-4 py-2.5 text-sm text-zinc-300 transition-colors hover:bg-white/10"
+                onClick={page.logout}
+                type="button"
+              >
+                Lock
+              </button>
+            </div>
+          }
+          description="Manage the tracks and artwork in your collection."
+          eyebrow="Audio management"
+          title="Edit audios"
+        />
 
         {page.isCreating && (
-          <AudioTrackForm
-            onCancel={page.closeCreateForm}
-            onSaved={page.closeCreateForm}
-          />
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-1">
+            <AudioTrackForm
+              onCancel={page.closeCreateForm}
+              onSaved={page.closeCreateForm}
+            />
+          </div>
         )}
         {page.editingTrack && (
-          <AudioTrackForm
-            key={page.editingTrack.id}
-            onCancel={page.closeEditForm}
-            onSaved={page.closeEditForm}
-            track={page.editingTrack}
-          />
+          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-1">
+            <AudioTrackForm
+              key={page.editingTrack.id}
+              onCancel={page.closeEditForm}
+              onSaved={page.closeEditForm}
+              track={page.editingTrack}
+            />
+          </div>
         )}
 
         <ManagedTrackList

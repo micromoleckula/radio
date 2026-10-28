@@ -1,5 +1,44 @@
 @import "tailwindcss";
 
+@layer base {
+  :root {
+    color-scheme: dark;
+    font-family:
+      Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", sans-serif;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: #080808;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    margin: 0;
+  }
+
+  ::selection {
+    color: #080808;
+    background: #6ee7a1;
+  }
+
+  :focus-visible {
+    outline: 2px solid #6ee7a1;
+    outline-offset: 3px;
+  }
+
+  * {
+    scrollbar-color: #3f3f46 transparent;
+    scrollbar-width: thin;
+  }
+}
+
 @theme {
   --color-green: #57b660;
   --color-white: #ffffff;

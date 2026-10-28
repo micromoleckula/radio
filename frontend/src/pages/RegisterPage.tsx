@@ -1,6 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
+import { FormField } from "../components/Ui/FormField";
+import { Notice } from "../components/Ui/Notice";
 import { useRegister } from "../hooks/useAuth";
 import {
   registerSchema,
@@ -27,63 +29,57 @@ export const RegisterPage = () => {
       onSubmit={(event) => {
         void handleSubmit(onSubmit)(event);
       }}
-      className="mx-auto flex w-full max-w-sm flex-col gap-4"
+      className="flex w-full flex-col gap-4"
     >
-      <h2 className="text-2xl font-bold text-white mb-4">
-        Create your account
-      </h2>
+      <div className="mb-1">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-400">
+          Make it yours
+        </p>
+        <h1 className="text-2xl font-bold tracking-tight">
+          Create your account
+        </h1>
+        <p className="mt-2 text-sm leading-6 text-zinc-400">
+          Build a library around the music you want to hear.
+        </p>
+      </div>
 
-      {apiError && (
-        <div
-          role="alert"
-          className="rounded border border-red-500/50 bg-red-500/20 p-3 text-sm text-red-500"
-        >
-          {apiError.message}
-        </div>
-      )}
+      {apiError && <Notice tone="error">{apiError.message}</Notice>}
 
-      <div className="flex flex-col gap-1">
+      <FormField error={errors.email?.message} label="Email">
         <input
           {...register("email")}
           type="email"
           autoComplete="email"
           aria-invalid={Boolean(errors.email)}
-          placeholder="Email"
-          className="p-3 rounded bg-zinc-800 text-white border border-zinc-700"
+          placeholder="you@example.com"
+          className="rounded-lg border border-white/10 bg-black/30 px-3.5 py-3 text-sm text-white outline-none transition focus:border-emerald-400/50 focus:ring-2 focus:ring-emerald-400/10"
         />
-        {errors.email && (
-          <span role="alert" className="text-red-500 text-sm">
-            {errors.email.message}
-          </span>
-        )}
-      </div>
+      </FormField>
 
-      <div className="flex flex-col gap-1">
+      <FormField error={errors.password?.message} label="Password">
         <input
           type="password"
           {...register("password")}
           autoComplete="new-password"
           aria-invalid={Boolean(errors.password)}
-          placeholder="Password"
-          className="p-3 rounded bg-zinc-800 text-white border border-zinc-700"
+          placeholder="Create a password"
+          className="rounded-lg border border-white/10 bg-black/30 px-3.5 py-3 text-sm text-white outline-none transition focus:border-emerald-400/50 focus:ring-2 focus:ring-emerald-400/10"
         />
-        {errors.password && (
-          <span role="alert" className="text-red-500 text-sm">
-            {errors.password.message}
-          </span>
-        )}
-      </div>
+      </FormField>
 
       <button
         type="submit"
         disabled={isPending}
-        className="bg-green-500 text-black font-bold p-3 rounded mt-2 hover:bg-green-400 disabled:opacity-50"
+        className="mt-1 rounded-full bg-emerald-400 px-5 py-3 text-sm font-semibold text-zinc-950 transition-colors hover:bg-emerald-300 disabled:opacity-50"
       >
-        {isPending ? "Loading..." : "Create account"}
+        {isPending ? "Creating account..." : "Create account"}
       </button>
-      <p className="text-center text-sm text-zinc-400">
+      <p className="pt-1 text-center text-sm text-zinc-500">
         Already have an account?{" "}
-        <Link className="text-white underline" to="/login">
+        <Link
+          className="font-medium text-emerald-300 hover:text-emerald-200"
+          to="/login"
+        >
           Log in
         </Link>
       </p>

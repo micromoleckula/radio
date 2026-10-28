@@ -10,7 +10,7 @@ export const SearchPage = () => {
     <Layout>
       <TrackCatalog
         query={query}
-        title={query ? `Search results for “${query}”` : "Search"}
+        title={query ? `Results for “${query}”` : "Find your next favorite"}
       />
     </Layout>
   );

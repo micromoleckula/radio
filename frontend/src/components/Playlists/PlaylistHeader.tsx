@@ -35,7 +35,7 @@ export function PlaylistHeader({
   isAddingTrack,
 }: PlaylistHeaderProps) {
   return (
-    <header className="flex flex-wrap items-end justify-between gap-4">
+    <header className="flex flex-wrap items-end justify-between gap-5 rounded-xl border border-white/[0.05] bg-white/[0.02] p-5 sm:p-6">
       <div className="min-w-0">
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-400">
           Playlist
@@ -70,7 +70,9 @@ export function PlaylistHeader({
           </form>
         ) : (
           <div className="flex items-center gap-3">
-            <h1 className="truncate text-4xl font-bold">{title}</h1>
+            <h1 className="truncate text-3xl font-bold tracking-tight sm:text-4xl">
+              {title}
+            </h1>
             <button
               aria-label="Rename playlist"
               className="text-sm text-zinc-400 hover:text-white"
@@ -88,7 +90,7 @@ export function PlaylistHeader({
       <form className="flex w-full gap-2 sm:w-auto" onSubmit={onAddTrack}>
         <select
           aria-label="Select a track to add"
-          className="min-w-0 flex-1 rounded bg-zinc-800 px-3 py-2 text-sm text-white sm:w-60"
+          className="min-w-0 flex-1 rounded-lg border border-white/10 bg-black/30 px-3 py-2.5 text-sm text-white outline-none focus:border-emerald-400/50 sm:w-60"
           onChange={(event) => {
             onSelectedTrackChange(event.target.value);
           }}

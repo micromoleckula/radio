@@ -2,6 +2,7 @@ import { Link, useParams } from "react-router-dom";
 import { Layout } from "../components/Layout";
 import { PlaylistHeader } from "../components/Playlists/PlaylistHeader";
 import { PlaylistTrackList } from "../components/Playlists/PlaylistTrackList";
+import { Notice } from "../components/Ui/Notice";
 import { usePlaylistPage } from "../hooks/usePlaylistPage";
 
 export const PlaylistPage = () => {
@@ -26,12 +27,14 @@ export const PlaylistPage = () => {
         </Link>
 
         {page.playlist.isLoading && (
-          <p className="text-sm text-zinc-400">Loading playlist...</p>
+          <p className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-zinc-400">
+            Loading playlist...
+          </p>
         )}
         {page.playlist.isError && (
-          <p className="text-sm text-red-400" role="alert">
+          <Notice tone="error">
             {page.playlist.error.message}
-          </p>
+          </Notice>
         )}
 
         {page.playlist.data && (
@@ -54,9 +57,9 @@ export const PlaylistPage = () => {
             />
 
             {page.error && (
-              <p className="text-sm text-red-400" role="alert">
+              <Notice tone="error">
                 {page.error.message}
-              </p>
+              </Notice>
             )}
 
             <PlaylistTrackList

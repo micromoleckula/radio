@@ -1,7 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
-import { Link } from "react-router-dom";
 import { Layout } from "../components/Layout";
+import { PlaylistCard } from "../components/Playlists/PlaylistCard";
+import { EmptyState } from "../components/Ui/EmptyState";
+import { Notice } from "../components/Ui/Notice";
+import { PageHeader } from "../components/Ui/PageHeader";
 import {
   createPlaylist,
   deletePlaylist,
@@ -42,85 +45,68 @@ export const LibraryPage = () => {
 
   return (
     <Layout>
-      <section className="mx-auto w-full max-w-4xl space-y-8">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-emerald-400">
-              Collection
-            </p>
-            <h1 className="text-3xl font-bold">Your Library</h1>
-          </div>
-          <form className="flex w-full gap-2 sm:w-auto" onSubmit={handleCreate}>
-            <input
-              aria-label="Playlist name"
-              className="min-w-0 flex-1 rounded-full bg-zinc-800 px-4 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-emerald-400 sm:w-56"
-              maxLength={120}
-              onChange={(event) => {
-                setTitle(event.target.value);
-              }}
-              placeholder="New playlist"
-              required
-              value={title}
-            />
-            <button
-              className="rounded-full bg-emerald-400 px-4 py-2 text-sm font-semibold text-black hover:bg-emerald-300 disabled:opacity-50"
-              disabled={createMutation.isPending || !title.trim()}
-              type="submit"
+      <section className="mx-auto w-full max-w-5xl space-y-7">
+        <PageHeader
+          actions={
+            <form
+              className="flex w-full gap-2 sm:w-auto"
+              onSubmit={handleCreate}
             >
-              Create
-            </button>
-          </form>
-        </div>
+              <input
+                aria-label="Playlist name"
+                className="min-w-0 flex-1 rounded-full border border-white/10 bg-black/30 px-4 py-2.5 text-sm text-white outline-none placeholder:text-zinc-600 focus:border-emerald-400/50 sm:w-56"
+                maxLength={120}
+                onChange={(event) => {
+                  setTitle(event.target.value);
+                }}
+                placeholder="New playlist"
+                required
+                value={title}
+              />
+              <button
+                className="rounded-full bg-emerald-400 px-4 py-2.5 text-sm font-semibold text-black transition-colors hover:bg-emerald-300 disabled:opacity-50"
+                disabled={createMutation.isPending || !title.trim()}
+                type="submit"
+              >
+                Create
+              </button>
+            </form>
+          }
+          description="Your playlists, gathered in one place."
+          eyebrow="Collection"
+          title="Your library"
+        />
 
         {createMutation.error && (
-          <p className="text-sm text-red-400" role="alert">
-            {createMutation.error.message}
-          </p>
+          <Notice tone="error">{createMutation.error.message}</Notice>
         )}
         {playlists.isLoading && (
-          <p className="text-sm text-zinc-400">Loading playlists...</p>
+          <p className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-zinc-400">
+            Loading playlists...
+          </p>
         )}
         {playlists.isError && (
-          <p className="text-sm text-red-400" role="alert">
-            {playlists.error.message}
-          </p>
+          <Notice tone="error">{playlists.error.message}</Notice>
         )}
-        {!playlists.isLoading && playlists.data?.length === 0 && (
-          <p className="text-sm text-zinc-400">
-            Your playlists will appear here.
-          </p>
-        )}
+        {!playlists.isLoading &&
+          !playlists.isError &&
+          playlists.data?.length === 0 && (
+            <EmptyState
+              description="Create your first playlist and give your favorite tracks a place to live."
+              title="Start a collection"
+            />
+          )}
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {playlists.data?.map((playlist) => (
-            <article
-              className="group min-w-0 rounded-lg bg-white/[0.04] p-4 transition-colors hover:bg-white/[0.08]"
+            <PlaylistCard
               key={playlist.id}
-            >
-              <Link className="block" to={`/library/${playlist.id.toString()}`}>
-                <div className="mb-4 grid aspect-square place-items-center rounded bg-gradient-to-br from-emerald-300 to-emerald-900 text-5xl font-bold text-black">
-                  {playlist.title.slice(0, 1).toUpperCase()}
-                </div>
-                <h2 className="truncate font-semibold text-white">
-                  {playlist.title}
-                </h2>
-                <p className="mt-1 text-sm text-zinc-400">
-                  {playlist.trackCount}{" "}
-                  {playlist.trackCount === 1 ? "track" : "tracks"}
-                </p>
-              </Link>
-              <button
-                aria-label={`Delete ${playlist.title}`}
-                className="mt-3 text-xs text-zinc-500 transition-colors hover:text-red-400"
-                disabled={deleteMutation.isPending}
-                onClick={() => {
-                  deleteMutation.mutate(playlist.id);
-                }}
-                type="button"
-              >
-                Delete playlist
-              </button>
-            </article>
+              isDeleting={deleteMutation.isPending}
+              onDelete={(item) => {
+                deleteMutation.mutate(item.id);
+              }}
+              playlist={playlist}
+            />
           ))}
         </div>
       </section>

@@ -10,7 +10,7 @@ export const ButtonSidebar = ({ to, children }: ButtonSidebarProps) => (
   <NavLink
     to={to}
     className={({ isActive }) =>
-      `rounded px-3 py-2 text-left transition-colors hover:bg-white/10 hover:text-white ${isActive ? "bg-white/10 text-white" : "text-zinc-400"}`
+      `relative rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-white/[0.06] hover:text-white ${isActive ? "bg-white/[0.08] font-medium text-white before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-full before:bg-emerald-400" : "text-zinc-400"}`
     }
   >
     {children}

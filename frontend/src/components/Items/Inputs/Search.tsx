@@ -21,7 +21,7 @@ export const InputSearch = () => {
 
   return (
     <form
-      className="flex items-center gap-2"
+      className="flex min-w-0 flex-1 items-center gap-2"
       onSubmit={handleSubmit}
       role="search"
     >
@@ -34,10 +34,10 @@ export const InputSearch = () => {
         onChange={(event) => {
           setQuery(event.target.value);
         }}
-        className="w-80 rounded-full bg-zinc-800 px-4 py-2 text-sm text-white placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-white/20"
+        className="w-full max-w-md rounded-full border border-white/[0.06] bg-black/30 px-4 py-2.5 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-emerald-400/40"
       />
       <button
-        className="rounded px-3 py-2 text-sm text-zinc-300 hover:bg-white/10 hover:text-white"
+        className="rounded-full px-3 py-2 text-sm text-zinc-400 transition-colors hover:bg-white/10 hover:text-white"
         type="submit"
       >
         Search
