@@ -1,14 +1,13 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import {
-  addTrackToPlaylist,
-  fetchPlaylists,
-} from "../../shared/playlists";
+import { addTrackToPlaylist } from "../../shared/playlists";
 import { queryKeys } from "../../shared/queryKeys";
 import type { Track } from "../../shared/tracks";
 import { useAuthStore } from "../../store/auth.store";
 import { Notice } from "../Ui/Notice";
+import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
+import { usePlaylists } from "../../hooks/usePlaylists";
 
 interface TrackPlaylistMenuProps {
   track: Track;
@@ -22,10 +21,16 @@ export function TrackPlaylistMenu({ track }: TrackPlaylistMenuProps) {
   const menuId = useId();
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const playlists = useQuery({
-    queryKey: queryKeys.playlists,
-    queryFn: fetchPlaylists,
-    enabled: isOpen && Boolean(token),
+  const playlists = usePlaylists(isOpen && Boolean(token));
+  const playlistItems =
+    playlists.data?.pages.flatMap((page) => page.items) ?? [];
+  const playlistSentinelRef = useInfiniteScroll({
+    enabled:
+      isOpen &&
+      playlists.hasNextPage &&
+      !playlists.isFetchNextPageError,
+    isFetching: playlists.isFetchingNextPage,
+    onLoadMore: () => playlists.fetchNextPage(),
   });
   const addTrack = useMutation({
     mutationFn: (playlistId: number) =>
@@ -103,7 +108,9 @@ export function TrackPlaylistMenu({ track }: TrackPlaylistMenuProps) {
           {playlists.isError && (
             <Notice tone="error">{playlists.error.message}</Notice>
           )}
-          {playlists.data?.length === 0 && (
+          {!playlists.isLoading &&
+            playlistItems.length === 0 &&
+            !playlists.isError && (
             <p className="px-2 py-2 text-sm text-zinc-400">
               No playlists yet.{" "}
               <Link
@@ -118,32 +125,53 @@ export function TrackPlaylistMenu({ track }: TrackPlaylistMenuProps) {
               .
             </p>
           )}
-          {playlists.data && playlists.data.length > 0 && (
-            <ul className="max-h-60 overflow-y-auto">
-              {playlists.data.map((playlist) => {
-                const isAdded = addedPlaylistId === playlist.id;
+          {playlistItems.length > 0 && (
+            <div className="max-h-60 overflow-y-auto">
+              <ul>
+                {playlistItems.map((playlist) => {
+                  const isAdded = addedPlaylistId === playlist.id;
 
-                return (
-                  <li key={playlist.id}>
+                  return (
+                    <li key={playlist.id}>
+                      <button
+                        className="flex w-full items-center justify-between gap-3 rounded px-2 py-2 text-left text-sm text-zinc-200 transition-colors hover:bg-white/10 disabled:cursor-default disabled:text-emerald-300"
+                        disabled={addTrack.isPending || isAdded}
+                        onClick={() => {
+                          addTrack.mutate(playlist.id);
+                        }}
+                        type="button"
+                      >
+                        <span className="truncate">{playlist.title}</span>
+                        <span className="shrink-0 text-xs">
+                          {isAdded
+                            ? "Added"
+                            : `${playlist.trackCount.toString()} tracks`}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+              {playlists.hasNextPage && (
+                <div
+                  className="px-2 py-2 text-xs text-zinc-500"
+                  ref={playlistSentinelRef}
+                  role="status"
+                  aria-live="polite"
+                >
+                  {playlists.isFetchingNextPage && "Loading more playlists..."}
+                  {playlists.isFetchNextPageError && (
                     <button
-                      className="flex w-full items-center justify-between gap-3 rounded px-2 py-2 text-left text-sm text-zinc-200 transition-colors hover:bg-white/10 disabled:cursor-default disabled:text-emerald-300"
-                      disabled={addTrack.isPending || isAdded}
-                      onClick={() => {
-                        addTrack.mutate(playlist.id);
-                      }}
+                      className="text-emerald-300 hover:text-emerald-200"
+                      onClick={() => void playlists.fetchNextPage()}
                       type="button"
                     >
-                      <span className="truncate">{playlist.title}</span>
-                      <span className="shrink-0 text-xs">
-                        {isAdded
-                          ? "Added"
-                          : `${playlist.trackCount.toString()} tracks`}
-                      </span>
+                      Could not load more. Try again.
                     </button>
-                  </li>
-                );
-              })}
-            </ul>
+                  )}
+                </div>
+              )}
+            </div>
           )}
           {addTrack.error && (
             <div className="mt-2">

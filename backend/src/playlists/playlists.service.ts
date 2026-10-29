@@ -10,6 +10,7 @@ import { Track } from "../tracks/entities/track.entity";
 import { toTrackListItem } from "../tracks/track.mapper";
 import type { TrackListItem } from "../tracks/tracks.types";
 import { CreatePlaylistDto } from "./dto/create-playlist.dto";
+import { ListPlaylistsDto } from "./dto/list-playlists.dto";
 import { PlaylistTrack } from "./entities/playlist-track.entity";
 import { Playlist } from "./entities/playlist.entity";
 
@@ -22,6 +23,13 @@ export interface PlaylistSummary {
 
 export interface PlaylistDetail extends Omit<PlaylistSummary, "trackCount"> {
   tracks: TrackListItem[];
+}
+
+export interface PlaylistListResponse {
+  items: PlaylistSummary[];
+  total: number;
+  limit: number;
+  offset: number;
 }
 
 @Injectable()
@@ -39,19 +47,50 @@ export class PlaylistsService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async list(ownerId: number): Promise<PlaylistSummary[]> {
-    const playlists = await this.playlistRepository.find({
+  async list(
+    ownerId: number,
+    query: ListPlaylistsDto,
+  ): Promise<PlaylistListResponse> {
+    const [playlists, total] = await this.playlistRepository.findAndCount({
       where: { ownerId },
-      relations: { playlistTracks: true },
       order: { createdAt: "DESC", id: "DESC" },
+      skip: query.offset,
+      take: query.limit,
     });
+    const playlistIds = playlists.map((playlist) => playlist.id);
+    const trackCounts =
+      playlistIds.length > 0
+        ? await this.playlistTrackRepository
+            .createQueryBuilder("playlistTrack")
+            .select("playlistTrack.playlistId", "playlistId")
+            .addSelect("COUNT(*)", "trackCount")
+            .where("playlistTrack.playlistId IN (:...playlistIds)", {
+              playlistIds,
+            })
+            .groupBy("playlistTrack.playlistId")
+            .getRawMany<{
+              playlistId: number;
+              trackCount: string;
+            }>()
+        : [];
+    const trackCountByPlaylistId = new Map(
+      trackCounts.map(({ playlistId, trackCount }) => [
+        playlistId,
+        Number(trackCount),
+      ]),
+    );
 
-    return playlists.map((playlist) => ({
-      id: playlist.id,
-      title: playlist.title,
-      createdAt: playlist.createdAt,
-      trackCount: playlist.playlistTracks.length,
-    }));
+    return {
+      items: playlists.map((playlist) => ({
+        id: playlist.id,
+        title: playlist.title,
+        createdAt: playlist.createdAt,
+        trackCount: trackCountByPlaylistId.get(playlist.id) ?? 0,
+      })),
+      total,
+      limit: query.limit,
+      offset: query.offset,
+    };
   }
 
   async create(

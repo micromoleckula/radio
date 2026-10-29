@@ -1,4 +1,5 @@
 import { useTracks } from "../../hooks/useTracks";
+import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { formatTime } from "../../shared/formatTime";
 import { EmptyState } from "../Ui/EmptyState";
 import { Notice } from "../Ui/Notice";
@@ -20,10 +21,16 @@ export const TrackCatalog = ({ title, query = "" }: TrackCatalogProps) => {
     fetchNextPage,
     hasNextPage,
     isError,
+    isFetchNextPageError,
     isFetchingNextPage,
     isLoading,
     refetch,
   } = useTracks(query);
+  const sentinelRef = useInfiniteScroll({
+    enabled: hasNextPage && !isFetchNextPageError,
+    isFetching: isFetchingNextPage,
+    onLoadMore: () => fetchNextPage(),
+  });
   const tracks = data?.pages.flatMap((page) => page.items) ?? [];
   const playTrack = usePlayerStore((state) => state.playTrack);
   const activeTrackId = usePlayerStore(
@@ -52,7 +59,7 @@ export const TrackCatalog = ({ title, query = "" }: TrackCatalogProps) => {
         </p>
       )}
 
-      {isError && (
+      {isError && !data && (
         <Notice tone="error">
           <div className="flex items-center justify-between gap-3">
             <span>{error.message}</span>
@@ -131,14 +138,23 @@ export const TrackCatalog = ({ title, query = "" }: TrackCatalogProps) => {
       )}
 
       {hasNextPage && (
-        <button
-          className="rounded-full border border-white/10 bg-white/[0.04] px-5 py-2.5 text-sm font-medium text-zinc-200 transition-colors hover:bg-white/[0.08] disabled:opacity-50"
-          disabled={isFetchingNextPage}
-          onClick={() => void fetchNextPage()}
-          type="button"
+        <div
+          className="py-3 text-center text-sm text-zinc-500"
+          ref={sentinelRef}
+          role="status"
+          aria-live="polite"
         >
-          {isFetchingNextPage ? "Loading..." : "Load more"}
-        </button>
+          {isFetchingNextPage && "Loading more tracks..."}
+          {isFetchNextPageError && (
+            <button
+              className="text-emerald-300 hover:text-emerald-200"
+              onClick={() => void fetchNextPage()}
+              type="button"
+            >
+              Could not load more tracks. Try again.
+            </button>
+          )}
+        </div>
       )}
     </section>
   );

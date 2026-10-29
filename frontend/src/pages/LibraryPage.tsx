@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { Layout } from "../components/Layout";
 import { PlaylistCard } from "../components/Playlists/PlaylistCard";
@@ -8,16 +8,21 @@ import { PageHeader } from "../components/Ui/PageHeader";
 import {
   createPlaylist,
   deletePlaylist,
-  fetchPlaylists,
 } from "../shared/playlists";
 import { queryKeys } from "../shared/queryKeys";
+import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
+import { usePlaylists } from "../hooks/usePlaylists";
 
 export const LibraryPage = () => {
   const queryClient = useQueryClient();
   const [title, setTitle] = useState("");
-  const playlists = useQuery({
-    queryKey: queryKeys.playlists,
-    queryFn: fetchPlaylists,
+  const playlists = usePlaylists();
+  const playlistItems =
+    playlists.data?.pages.flatMap((page) => page.items) ?? [];
+  const playlistSentinelRef = useInfiniteScroll({
+    enabled: playlists.hasNextPage && !playlists.isFetchNextPageError,
+    isFetching: playlists.isFetchingNextPage,
+    onLoadMore: () => playlists.fetchNextPage(),
   });
   const createMutation = useMutation({
     mutationFn: createPlaylist,
@@ -90,7 +95,7 @@ export const LibraryPage = () => {
         )}
         {!playlists.isLoading &&
           !playlists.isError &&
-          playlists.data?.length === 0 && (
+          playlistItems.length === 0 && (
             <EmptyState
               description="Create your first playlist and give your favorite tracks a place to live."
               title="Start a collection"
@@ -98,7 +103,7 @@ export const LibraryPage = () => {
           )}
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {playlists.data?.map((playlist) => (
+          {playlistItems.map((playlist) => (
             <PlaylistCard
               key={playlist.id}
               isDeleting={deleteMutation.isPending}
@@ -109,6 +114,25 @@ export const LibraryPage = () => {
             />
           ))}
         </div>
+        {playlists.hasNextPage && (
+          <div
+            className="py-3 text-center text-sm text-zinc-500"
+            ref={playlistSentinelRef}
+            role="status"
+            aria-live="polite"
+          >
+            {playlists.isFetchingNextPage && "Loading more playlists..."}
+            {playlists.isFetchNextPageError && (
+              <button
+                className="text-emerald-300 hover:text-emerald-200"
+                onClick={() => void playlists.fetchNextPage()}
+                type="button"
+              >
+                Could not load more playlists. Try again.
+              </button>
+            )}
+          </div>
+        )}
       </section>
     </Layout>
   );

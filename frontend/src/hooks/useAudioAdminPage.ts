@@ -79,7 +79,11 @@ export function useAudioAdminPage() {
     toggleCreateForm,
     startEditingTrack,
     confirmDeleteTrack,
-    closeCreateForm: () => setIsCreating(false),
-    closeEditForm: () => setEditingTrack(null),
+    closeCreateForm: () => {
+      setIsCreating(false);
+    },
+    closeEditForm: () => {
+      setEditingTrack(null);
+    },
   };
 }

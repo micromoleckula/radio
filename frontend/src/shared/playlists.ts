@@ -1,4 +1,5 @@
 import { apiDelete, apiGet, apiPatch, apiRequest } from "./api";
+import { PLAYLISTS_PAGE_SIZE } from "./constants";
 import type { Track } from "./tracks";
 
 export interface PlaylistSummary {
@@ -12,8 +13,20 @@ export interface PlaylistDetail extends Omit<PlaylistSummary, "trackCount"> {
   tracks: Track[];
 }
 
-export function fetchPlaylists(): Promise<PlaylistSummary[]> {
-  return apiGet<PlaylistSummary[]>("/playlists", true);
+export interface PlaylistListResponse {
+  items: PlaylistSummary[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export function fetchPlaylists(offset: number): Promise<PlaylistListResponse> {
+  const params = new URLSearchParams({
+    limit: String(PLAYLISTS_PAGE_SIZE),
+    offset: String(offset),
+  });
+
+  return apiGet<PlaylistListResponse>(`/playlists?${params.toString()}`, true);
 }
 
 export function fetchPlaylist(id: number): Promise<PlaylistDetail> {

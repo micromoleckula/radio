@@ -73,16 +73,15 @@ export const EditAudiosPage = () => {
         <ManagedTrackList
           deleteError={page.deleteError}
           error={page.tracks.error}
-          hasNextPage={Boolean(page.tracks.hasNextPage)}
+          hasNextPage={page.tracks.hasNextPage}
+          isFetchNextPageError={page.tracks.isFetchNextPageError}
           isDeleting={page.isDeleting}
           isError={page.tracks.isError}
           isFetchingNextPage={page.tracks.isFetchingNextPage}
           isLoading={page.tracks.isLoading}
           onDelete={page.confirmDeleteTrack}
           onEdit={page.startEditingTrack}
-          onLoadMore={() => {
-            void page.tracks.fetchNextPage();
-          }}
+          onLoadMore={() => page.tracks.fetchNextPage()}
           tracks={page.allTracks}
         />
       </section>

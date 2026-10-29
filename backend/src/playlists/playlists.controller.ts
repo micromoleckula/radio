@@ -8,15 +8,18 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Query,
   UseGuards,
 } from "@nestjs/common";
 import { CurrentUser } from "../common/decorators/user.decorator";
 import { JwtAuthGuard } from "../common/guards/jwt-auth.guard";
 import type { AuthenticatedUser } from "../common/interfaces/jwt-payload.interface";
 import { CreatePlaylistDto } from "./dto/create-playlist.dto";
+import { ListPlaylistsDto } from "./dto/list-playlists.dto";
 import { ReorderPlaylistDto } from "./dto/reorder-playlist.dto";
 import {
   PlaylistsService,
+  type PlaylistListResponse,
   type PlaylistDetail,
   type PlaylistSummary,
 } from "./playlists.service";
@@ -27,8 +30,11 @@ export class PlaylistsController {
   constructor(private readonly playlistsService: PlaylistsService) {}
 
   @Get()
-  list(@CurrentUser() user: AuthenticatedUser): Promise<PlaylistSummary[]> {
-    return this.playlistsService.list(user.userId);
+  list(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query() query: ListPlaylistsDto,
+  ): Promise<PlaylistListResponse> {
+    return this.playlistsService.list(user.userId, query);
   }
 
   @Post()

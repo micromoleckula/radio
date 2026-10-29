@@ -1,4 +1,5 @@
 import type { Track } from "../../shared/tracks";
+import { useInfiniteScroll } from "../../hooks/useInfiniteScroll";
 import { EmptyState } from "../Ui/EmptyState";
 import { Notice } from "../Ui/Notice";
 import { TrackCover } from "./TrackCover";
@@ -12,9 +13,10 @@ interface ManagedTrackListProps {
   isDeleting: boolean;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
+  isFetchNextPageError: boolean;
   onEdit: (track: Track) => void;
   onDelete: (track: Track) => void;
-  onLoadMore: () => void;
+  onLoadMore: () => Promise<unknown>;
 }
 
 export function ManagedTrackList({
@@ -26,10 +28,17 @@ export function ManagedTrackList({
   isDeleting,
   hasNextPage,
   isFetchingNextPage,
+  isFetchNextPageError,
   onEdit,
   onDelete,
   onLoadMore,
 }: ManagedTrackListProps) {
+  const sentinelRef = useInfiniteScroll({
+    enabled: hasNextPage && !isFetchNextPageError,
+    isFetching: isFetchingNextPage,
+    onLoadMore,
+  });
+
   return (
     <>
       {isLoading && (
@@ -91,14 +100,23 @@ export function ManagedTrackList({
       </div>
 
       {hasNextPage && (
-        <button
-          className="rounded-full bg-white/10 px-4 py-2 text-sm text-white hover:bg-white/15 disabled:opacity-50"
-          disabled={isFetchingNextPage}
-          onClick={onLoadMore}
-          type="button"
+        <div
+          className="py-3 text-center text-sm text-zinc-500"
+          ref={sentinelRef}
+          role="status"
+          aria-live="polite"
         >
-          {isFetchingNextPage ? "Loading..." : "Load more"}
-        </button>
+          {isFetchingNextPage && "Loading more tracks..."}
+          {isFetchNextPageError && (
+            <button
+              className="text-emerald-300 hover:text-emerald-200"
+              onClick={() => void onLoadMore()}
+              type="button"
+            >
+              Could not load more tracks. Try again.
+            </button>
+          )}
+        </div>
       )}
     </>
   );
