@@ -1,13 +1,13 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
-import { FormField } from "../components/Ui/FormField";
-import { Notice } from "../components/Ui/Notice";
-import { useRegister } from "../hooks/useAuth";
+import { FormField } from "../shared/ui/FormField";
+import { Notice } from "../shared/ui/Notice";
+import { useRegister } from "../features/auth/hooks/useAuth";
 import {
   registerSchema,
   type RegisterType,
-} from "../shared/validation/auth.schema";
+} from "../features/auth/validation/auth.schema";
 
 export const RegisterPage = () => {
   const {
@@ -32,7 +32,7 @@ export const RegisterPage = () => {
       className="flex w-full flex-col gap-4"
     >
       <div className="mb-1">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-400">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-kicker text-emerald-400">
           Make it yours
         </p>
         <h1 className="text-2xl font-bold tracking-tight">

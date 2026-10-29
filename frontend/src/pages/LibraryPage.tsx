@@ -1,17 +1,17 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
-import { Layout } from "../components/Layout";
-import { PlaylistCard } from "../components/Playlists/PlaylistCard";
-import { EmptyState } from "../components/Ui/EmptyState";
-import { Notice } from "../components/Ui/Notice";
-import { PageHeader } from "../components/Ui/PageHeader";
+import { Layout } from "../shared/layout/Layout";
+import { PlaylistCard } from "../features/playlists/components/PlaylistCard";
+import { EmptyState } from "../shared/ui/EmptyState";
+import { Notice } from "../shared/ui/Notice";
+import { PageHeader } from "../shared/ui/PageHeader";
 import {
   createPlaylist,
   deletePlaylist,
-} from "../shared/playlists";
-import { queryKeys } from "../shared/queryKeys";
-import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
-import { usePlaylists } from "../hooks/usePlaylists";
+} from "../features/playlists/api";
+import { queryKeys } from "../shared/lib/queryKeys";
+import { useInfiniteScroll } from "../shared/hooks/useInfiniteScroll";
+import { usePlaylists } from "../features/playlists/hooks/usePlaylists";
 
 export const LibraryPage = () => {
   const queryClient = useQueryClient();
@@ -86,7 +86,7 @@ export const LibraryPage = () => {
           <Notice tone="error">{createMutation.error.message}</Notice>
         )}
         {playlists.isLoading && (
-          <p className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-zinc-400">
+          <p className="rounded-lg border border-white-6 bg-white-2 px-4 py-3 text-sm text-zinc-400">
             Loading playlists...
           </p>
         )}

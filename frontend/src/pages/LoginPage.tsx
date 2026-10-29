@@ -1,10 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
-import { FormField } from "../components/Ui/FormField";
-import { Notice } from "../components/Ui/Notice";
-import { useLogin } from "../hooks/useAuth";
-import { loginSchema, type LoginType } from "../shared/validation/auth.schema";
+import { FormField } from "../shared/ui/FormField";
+import { Notice } from "../shared/ui/Notice";
+import { useLogin } from "../features/auth/hooks/useAuth";
+import { loginSchema, type LoginType } from "../features/auth/validation/auth.schema";
 
 export const LoginPage = () => {
   const {
@@ -29,7 +29,7 @@ export const LoginPage = () => {
       className="flex w-full flex-col gap-4"
     >
       <div className="mb-1">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-400">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-kicker text-emerald-400">
           Welcome back
         </p>
         <h1 className="text-2xl font-bold tracking-tight">Log in</h1>

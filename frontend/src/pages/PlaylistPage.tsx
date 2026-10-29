@@ -1,9 +1,9 @@
 import { Link, useParams } from "react-router-dom";
-import { Layout } from "../components/Layout";
-import { PlaylistHeader } from "../components/Playlists/PlaylistHeader";
-import { PlaylistTrackList } from "../components/Playlists/PlaylistTrackList";
-import { Notice } from "../components/Ui/Notice";
-import { usePlaylistPage } from "../hooks/usePlaylistPage";
+import { Layout } from "../shared/layout/Layout";
+import { PlaylistHeader } from "../features/playlists/components/PlaylistHeader";
+import { PlaylistTrackList } from "../features/playlists/components/PlaylistTrackList";
+import { Notice } from "../shared/ui/Notice";
+import { usePlaylistPage } from "../features/playlists/hooks/usePlaylistPage";
 
 export const PlaylistPage = () => {
   const { playlistId: playlistIdParam } = useParams();
@@ -27,7 +27,7 @@ export const PlaylistPage = () => {
         </Link>
 
         {page.playlist.isLoading && (
-          <p className="rounded-lg border border-white/[0.06] bg-white/[0.02] px-4 py-3 text-sm text-zinc-400">
+          <p className="rounded-lg border border-white-6 bg-white-2 px-4 py-3 text-sm text-zinc-400">
             Loading playlist...
           </p>
         )}

@@ -1,5 +1,5 @@
-import { Layout } from "../components/Layout";
-import { TrackCatalog } from "../components/Tracks/TrackCatalog";
+import { Layout } from "../shared/layout/Layout";
+import { TrackCatalog } from "../features/tracks/components/TrackCatalog";
 
 export const HomePage = () => {
   return (

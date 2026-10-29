@@ -1,10 +1,10 @@
-import { AudioTrackForm } from "../components/Tracks/AudioTrackForm";
-import { AudioAdminUnlockForm } from "../components/Tracks/AudioAdminUnlockForm";
-import { ManagedTrackList } from "../components/Tracks/ManagedTrackList";
-import { Layout } from "../components/Layout";
-import { Notice } from "../components/Ui/Notice";
-import { PageHeader } from "../components/Ui/PageHeader";
-import { useAudioAdminPage } from "../hooks/useAudioAdminPage";
+import { AudioTrackForm } from "../features/audio-admin/components/AudioTrackForm";
+import { AudioAdminUnlockForm } from "../features/audio-admin/components/AudioAdminUnlockForm";
+import { ManagedTrackList } from "../features/audio-admin/components/ManagedTrackList";
+import { Layout } from "../shared/layout/Layout";
+import { Notice } from "../shared/ui/Notice";
+import { PageHeader } from "../shared/ui/PageHeader";
+import { useAudioAdminPage } from "../features/audio-admin/hooks/useAudioAdminPage";
 
 export const EditAudiosPage = () => {
   const page = useAudioAdminPage();
@@ -52,7 +52,7 @@ export const EditAudiosPage = () => {
         />
 
         {page.isCreating && (
-          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-1">
+          <div className="rounded-xl border border-white-6 bg-white-2 p-1">
             <AudioTrackForm
               onCancel={page.closeCreateForm}
               onSaved={page.closeCreateForm}
@@ -60,7 +60,7 @@ export const EditAudiosPage = () => {
           </div>
         )}
         {page.editingTrack && (
-          <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-1">
+          <div className="rounded-xl border border-white-6 bg-white-2 p-1">
             <AudioTrackForm
               key={page.editingTrack.id}
               onCancel={page.closeEditForm}
