@@ -25,12 +25,6 @@ export const Sidebar = () => {
         <ButtonSidebar to="/library">Your Library</ButtonSidebar>
         <ButtonSidebar to="/edit-audios">Manage audio</ButtonSidebar>
       </nav>
-      <div className="mt-auto rounded-lg border border-white/[0.06] bg-white/[0.02] p-3">
-        <p className="text-xs font-medium text-zinc-300">A quieter corner</p>
-        <p className="mt-1 text-xs leading-5 text-zinc-500">
-          Find a track, make a playlist, and settle in.
-        </p>
-      </div>
     </aside>
   );
 };

@@ -4,7 +4,9 @@ import { EmptyState } from "../Ui/EmptyState";
 import { Notice } from "../Ui/Notice";
 import { PageHeader } from "../Ui/PageHeader";
 import { usePlayerStore } from "../../store/player.store";
+import { useAuthStore } from "../../store/auth.store";
 import { TrackCover } from "./TrackCover";
+import { TrackPlaylistMenu } from "./TrackPlaylistMenu";
 
 interface TrackCatalogProps {
   title: string;
@@ -27,6 +29,10 @@ export const TrackCatalog = ({ title, query = "" }: TrackCatalogProps) => {
   const activeTrackId = usePlayerStore(
     (state) => state.queue[state.currentIndex]?.id,
   );
+  const isAuthenticated = useAuthStore((state) => Boolean(state.token));
+  const gridColumns = isAuthenticated
+    ? "grid-cols-[2rem_2.75rem_minmax(0,1fr)_3.25rem_2rem] sm:grid-cols-[2rem_2.75rem_minmax(0,1fr)_5rem_2rem]"
+    : "grid-cols-[2rem_2.75rem_minmax(0,1fr)_3.25rem] sm:grid-cols-[2rem_2.75rem_minmax(0,1fr)_5rem]";
 
   return (
     <section className="mx-auto max-w-5xl space-y-6">
@@ -73,17 +79,20 @@ export const TrackCatalog = ({ title, query = "" }: TrackCatalogProps) => {
       )}
 
       {tracks.length > 0 && (
-        <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.015]">
-          <div className="hidden grid-cols-[2rem_2.75rem_minmax(0,1fr)_5rem] gap-3 border-b border-white/[0.06] px-2 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-600 sm:grid">
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.015]">
+          <div
+            className={`hidden ${gridColumns} gap-3 border-b border-white/[0.06] px-2 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-600 sm:grid`}
+          >
             <span />
             <span />
             <span>Track</span>
             <span className="text-right">Time</span>
+            {isAuthenticated && <span />}
           </div>
           <div className="divide-y divide-white/[0.05]">
             {tracks.map((track, index) => (
               <article
-                className="group grid grid-cols-[2rem_2.75rem_minmax(0,1fr)_3.25rem] items-center gap-3 px-2 py-3 text-sm transition-colors hover:bg-white/[0.04] sm:grid-cols-[2rem_2.75rem_minmax(0,1fr)_5rem] sm:px-3"
+                className={`group grid ${gridColumns} items-center gap-3 px-2 py-3 text-sm transition-colors hover:bg-white/[0.04] sm:px-3`}
                 key={track.id}
               >
                 <button
@@ -114,6 +123,7 @@ export const TrackCatalog = ({ title, query = "" }: TrackCatalogProps) => {
                 <time className="text-right tabular-nums text-zinc-500">
                   {formatTime(track.durationSeconds)}
                 </time>
+                {isAuthenticated && <TrackPlaylistMenu track={track} />}
               </article>
             ))}
           </div>

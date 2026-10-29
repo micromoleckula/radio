@@ -1,8 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
-import { useTracks } from "./useTracks";
 import {
-  addTrackToPlaylist,
   fetchPlaylist,
   renamePlaylist,
   removeTrackFromPlaylist,
@@ -14,7 +12,6 @@ import { usePlayerStore } from "../store/player.store";
 
 export function usePlaylistPage(playlistId: number, enabled: boolean) {
   const queryClient = useQueryClient();
-  const [selectedTrackId, setSelectedTrackId] = useState("");
   const [isRenaming, setIsRenaming] = useState(false);
   const [titleDraft, setTitleDraft] = useState("");
   const playlist = useQuery({
@@ -22,19 +19,8 @@ export function usePlaylistPage(playlistId: number, enabled: boolean) {
     queryFn: () => fetchPlaylist(playlistId),
     enabled,
   });
-  const availableTracks = useTracks();
   const playTrack = usePlayerStore((state) => state.playTrack);
   const tracks = playlist.data?.tracks ?? [];
-  const trackIds = new Set(tracks.map((track) => track.id));
-  const addableTracks =
-    availableTracks.data?.pages.flatMap((page) => page.items) ?? [];
-  const addMutation = useMutation({
-    mutationFn: (trackId: number) => addTrackToPlaylist(playlistId, trackId),
-    onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.playlist(playlistId),
-      }),
-  });
   const removeMutation = useMutation({
     mutationFn: (trackId: number) =>
       removeTrackFromPlaylist(playlistId, trackId),
@@ -74,15 +60,6 @@ export function usePlaylistPage(playlistId: number, enabled: boolean) {
     }
   };
 
-  const handleAddTrack = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const trackId = Number(selectedTrackId);
-
-    if (trackId) {
-      addMutation.mutate(trackId);
-    }
-  };
-
   const moveTrack = (index: number, direction: -1 | 1) => {
     const targetIndex = index + direction;
 
@@ -104,7 +81,6 @@ export function usePlaylistPage(playlistId: number, enabled: boolean) {
   };
 
   const error =
-    addMutation.error ??
     removeMutation.error ??
     renameMutation.error ??
     reorderMutation.error;
@@ -112,22 +88,22 @@ export function usePlaylistPage(playlistId: number, enabled: boolean) {
   return {
     playlist,
     tracks,
-    addableTracks: addableTracks.filter((track) => !trackIds.has(track.id)),
-    selectedTrackId,
-    setSelectedTrackId,
     isRenaming,
     titleDraft,
     setTitleDraft,
     handleRename,
-    handleAddTrack,
     startRenaming,
-    cancelRenaming: () => setIsRenaming(false),
+    cancelRenaming: () => {
+      setIsRenaming(false);
+    },
     moveTrack,
-    addTrack: (trackId: number) => addMutation.mutate(trackId),
-    removeTrack: (trackId: number) => removeMutation.mutate(trackId),
-    playTrack: (track: Track) => playTrack(track, tracks),
+    removeTrack: (trackId: number) => {
+      removeMutation.mutate(trackId);
+    },
+    playTrack: (track: Track) => {
+      playTrack(track, tracks);
+    },
     error,
-    isAddingTrack: addMutation.isPending,
     isRenamingPlaylist: renameMutation.isPending,
     isReordering: reorderMutation.isPending,
     isRemovingTrack: removeMutation.isPending,

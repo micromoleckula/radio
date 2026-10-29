@@ -40,17 +40,12 @@ export const PlaylistPage = () => {
         {page.playlist.data && (
           <>
             <PlaylistHeader
-              addableTracks={page.addableTracks}
-              isAddingTrack={page.isAddingTrack}
               isRenamePending={page.isRenamingPlaylist}
               isRenaming={page.isRenaming}
-              onAddTrack={page.handleAddTrack}
               onCancelRenaming={page.cancelRenaming}
               onRename={page.handleRename}
-              onSelectedTrackChange={page.setSelectedTrackId}
               onStartRenaming={page.startRenaming}
               onTitleDraftChange={page.setTitleDraft}
-              selectedTrackId={page.selectedTrackId}
               title={page.playlist.data.title}
               titleDraft={page.titleDraft}
               trackCount={page.tracks.length}
