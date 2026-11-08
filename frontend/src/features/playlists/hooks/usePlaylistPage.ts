@@ -14,6 +14,7 @@ export function usePlaylistPage(playlistId: number, enabled: boolean) {
   const queryClient = useQueryClient();
   const [isRenaming, setIsRenaming] = useState(false);
   const [titleDraft, setTitleDraft] = useState("");
+  const [trackToRemove, setTrackToRemove] = useState<Track | null>(null);
   const playlist = useQuery({
     queryKey: queryKeys.playlist(playlistId),
     queryFn: () => fetchPlaylist(playlistId),
@@ -24,10 +25,14 @@ export function usePlaylistPage(playlistId: number, enabled: boolean) {
   const removeMutation = useMutation({
     mutationFn: (trackId: number) =>
       removeTrackFromPlaylist(playlistId, trackId),
-    onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.playlist(playlistId),
-      }),
+    onSuccess: async (updatedPlaylist) => {
+      queryClient.setQueryData(
+        queryKeys.playlist(playlistId),
+        updatedPlaylist,
+      );
+      await queryClient.invalidateQueries({ queryKey: queryKeys.playlists });
+      setTrackToRemove(null);
+    },
   });
   const renameMutation = useMutation({
     mutationFn: (title: string) => renamePlaylist(playlistId, title),
@@ -81,7 +86,6 @@ export function usePlaylistPage(playlistId: number, enabled: boolean) {
   };
 
   const error =
-    removeMutation.error ??
     renameMutation.error ??
     reorderMutation.error;
 
@@ -97,13 +101,25 @@ export function usePlaylistPage(playlistId: number, enabled: boolean) {
       setIsRenaming(false);
     },
     moveTrack,
-    removeTrack: (trackId: number) => {
-      removeMutation.mutate(trackId);
+    trackToRemove,
+    requestRemoveTrack: (track: Track) => {
+      removeMutation.reset();
+      setTrackToRemove(track);
+    },
+    cancelRemoveTrack: () => {
+      setTrackToRemove(null);
+      removeMutation.reset();
+    },
+    confirmRemoveTrack: () => {
+      if (trackToRemove) {
+        removeMutation.mutate(trackToRemove.id);
+      }
     },
     playTrack: (track: Track) => {
       playTrack(track, tracks);
     },
     error,
+    removeError: removeMutation.error,
     isRenamingPlaylist: renameMutation.isPending,
     isReordering: reorderMutation.isPending,
     isRemovingTrack: removeMutation.isPending,

@@ -1,10 +1,10 @@
 import { AudioTrackForm } from "../features/audio-admin/components/AudioTrackForm";
 import { AudioAdminUnlockForm } from "../features/audio-admin/components/AudioAdminUnlockForm";
 import { ManagedTrackList } from "../features/audio-admin/components/ManagedTrackList";
-import { Layout } from "../shared/layout/Layout";
 import { Notice } from "../shared/ui/Notice";
 import { PageHeader } from "../shared/ui/PageHeader";
 import { useAudioAdminPage } from "../features/audio-admin/hooks/useAudioAdminPage";
+import { ConfirmDialog } from "../shared/ui/ConfirmDialog";
 
 export const EditAudiosPage = () => {
   const page = useAudioAdminPage();
@@ -22,7 +22,6 @@ export const EditAudiosPage = () => {
   }
 
   return (
-    <Layout>
       <section className="mx-auto w-full max-w-5xl space-y-7">
         {page.adminSessionError && (
           <Notice tone="error">{page.adminSessionError.message}</Notice>
@@ -71,7 +70,6 @@ export const EditAudiosPage = () => {
         )}
 
         <ManagedTrackList
-          deleteError={page.deleteError}
           error={page.tracks.error}
           hasNextPage={page.tracks.hasNextPage}
           isFetchNextPageError={page.tracks.isFetchNextPageError}
@@ -79,12 +77,21 @@ export const EditAudiosPage = () => {
           isError={page.tracks.isError}
           isFetchingNextPage={page.tracks.isFetchingNextPage}
           isLoading={page.tracks.isLoading}
-          onDelete={page.confirmDeleteTrack}
+          onDelete={page.requestDeleteTrack}
           onEdit={page.startEditingTrack}
           onLoadMore={() => page.tracks.fetchNextPage()}
           tracks={page.allTracks}
         />
+        <ConfirmDialog
+          confirmLabel="Delete track"
+          description={`Delete “${page.trackToDelete?.title ?? ""}” from the library? This cannot be undone.`}
+          error={page.trackToDelete ? page.deleteError?.message : undefined}
+          isOpen={page.trackToDelete !== null}
+          isPending={page.isDeleting}
+          onClose={page.cancelDeleteTrack}
+          onConfirm={page.confirmDeleteTrack}
+          title="Delete track?"
+        />
       </section>
-    </Layout>
   );
 };

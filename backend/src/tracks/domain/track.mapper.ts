@@ -1,7 +1,11 @@
 import type { Track } from "../entities/track.entity";
 import type { TrackListItem } from "./tracks.types";
 
-export function toTrackListItem(track: Track): TrackListItem {
+export function toTrackListItem(
+  track: Track,
+  audioAvailable = true,
+  coverAvailable = Boolean(track.coverPath),
+): TrackListItem {
   return {
     id: track.id,
     title: track.title,
@@ -9,6 +13,7 @@ export function toTrackListItem(track: Track): TrackListItem {
     album: track.album,
     durationSeconds: track.durationSeconds,
     createdAt: track.createdAt,
-    coverAvailable: Boolean(track.coverPath),
+    audioAvailable,
+    coverAvailable,
   };
 }

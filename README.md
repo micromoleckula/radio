@@ -1,5 +1,11 @@
 # Radio
 
+## Requirements
+
+- Node.js 22.12 or newer
+  also supports Node.js 20.19+
+- npm 10.8 or newer.
+
 ## How to run
 
 Before running the backend, make sure you have a .env in backend file.

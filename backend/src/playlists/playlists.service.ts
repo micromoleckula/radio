@@ -9,6 +9,8 @@ import { User } from "../auth/entities/user.entity";
 import { Track } from "../tracks/entities/track.entity";
 import { toTrackListItem } from "../tracks/domain/track.mapper";
 import type { TrackListItem } from "../tracks/domain/tracks.types";
+import { TrackCoverStorageService } from "../tracks/services/track-cover-storage.service";
+import { TrackStorageService } from "../tracks/services/track-storage.service";
 import { CreatePlaylistDto } from "./dto/create-playlist.dto";
 import { ListPlaylistsDto } from "./dto/list-playlists.dto";
 import { PlaylistTrack } from "./entities/playlist-track.entity";
@@ -19,6 +21,7 @@ export interface PlaylistSummary {
   title: string;
   createdAt: Date;
   trackCount: number;
+  containsTrack?: boolean;
 }
 
 export interface PlaylistDetail extends Omit<PlaylistSummary, "trackCount"> {
@@ -45,6 +48,8 @@ export class PlaylistsService {
     private readonly trackRepository: Repository<Track>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly trackStorage: TrackStorageService,
+    private readonly coverStorage: TrackCoverStorageService,
   ) {}
 
   async list(
@@ -79,6 +84,22 @@ export class PlaylistsService {
         Number(trackCount),
       ]),
     );
+    const playlistsContainingTrack =
+      query.trackId !== undefined && playlistIds.length > 0
+        ? await this.playlistTrackRepository
+            .createQueryBuilder("playlistTrack")
+            .select("playlistTrack.playlistId", "playlistId")
+            .where("playlistTrack.playlistId IN (:...playlistIds)", {
+              playlistIds,
+            })
+            .andWhere("playlistTrack.trackId = :trackId", {
+              trackId: query.trackId,
+            })
+            .getRawMany<{ playlistId: number }>()
+        : [];
+    const playlistIdsContainingTrack = new Set(
+      playlistsContainingTrack.map(({ playlistId }) => playlistId),
+    );
 
     return {
       items: playlists.map((playlist) => ({
@@ -86,6 +107,9 @@ export class PlaylistsService {
         title: playlist.title,
         createdAt: playlist.createdAt,
         trackCount: trackCountByPlaylistId.get(playlist.id) ?? 0,
+        ...(query.trackId !== undefined && {
+          containsTrack: playlistIdsContainingTrack.has(playlist.id),
+        }),
       })),
       total,
       limit: query.limit,
@@ -120,6 +144,7 @@ export class PlaylistsService {
       .createQueryBuilder("playlist")
       .leftJoinAndSelect("playlist.playlistTracks", "playlistTrack")
       .leftJoinAndSelect("playlistTrack.track", "track")
+      .addSelect("track.audioPath")
       .where("playlist.id = :playlistId", { playlistId })
       .andWhere("playlist.ownerId = :ownerId", { ownerId })
       .orderBy("playlistTrack.position", "ASC")
@@ -134,8 +159,14 @@ export class PlaylistsService {
       id: playlist.id,
       title: playlist.title,
       createdAt: playlist.createdAt,
-      tracks: playlist.playlistTracks.map(({ track }) =>
-        toTrackListItem(track),
+      tracks: await Promise.all(
+        playlist.playlistTracks.map(async ({ track }) =>
+          toTrackListItem(
+            track,
+            await this.trackStorage.isAvailable(track.audioPath),
+            await this.coverStorage.isAvailable(track.coverPath),
+          ),
+        ),
       ),
     };
   }

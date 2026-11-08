@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { ILike, Repository } from "typeorm";
+import { Repository } from "typeorm";
 import { CreateTrackDto } from "../dto/create-track.dto";
 import { ListTracksDto } from "../dto/list-tracks.dto";
 import { UpdateTrackDto } from "../dto/update-track.dto";
@@ -27,23 +27,33 @@ export class TracksService {
 
   async list(query: ListTracksDto): Promise<TrackListResponse> {
     const search = query.q ? `%${escapeLikePattern(query.q)}%` : undefined;
-    const [tracks, total] = await this.trackRepository.findAndCount({
-      ...(search
-        ? {
-            where: [
-              { title: ILike(search) },
-              { artist: ILike(search) },
-              { album: ILike(search) },
-            ],
-          }
-        : {}),
-      order: { title: "ASC", id: "ASC" },
-      skip: query.offset,
-      take: query.limit,
-    });
+    const queryBuilder = this.trackRepository
+      .createQueryBuilder("track")
+      .addSelect("track.audioPath")
+      .orderBy("track.title", "ASC")
+      .addOrderBy("track.id", "ASC")
+      .skip(query.offset)
+      .take(query.limit);
+
+    if (search) {
+      queryBuilder.where(
+        "track.title ILIKE :search OR track.artist ILIKE :search OR track.album ILIKE :search",
+        { search },
+      );
+    }
+
+    const [tracks, total] = await queryBuilder.getManyAndCount();
 
     return {
-      items: tracks.map(toTrackListItem),
+      items: await Promise.all(
+        tracks.map(async (track) =>
+          toTrackListItem(
+            track,
+            await this.trackStorage.isAvailable(track.audioPath),
+            await this.coverStorage.isAvailable(track.coverPath),
+          ),
+        ),
+      ),
       total,
       limit: query.limit,
       offset: query.offset,

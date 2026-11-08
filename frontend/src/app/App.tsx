@@ -12,6 +12,7 @@ import { LoginPage } from "../pages/LoginPage";
 import { PlaylistPage } from "../pages/PlaylistPage";
 import { RegisterPage } from "../pages/RegisterPage";
 import { SearchPage } from "../pages/SearchPage";
+import { Layout } from "../shared/layout/Layout";
 
 export const App = () => {
   const token = useAuthStore((state) => state.token);
@@ -27,8 +28,6 @@ export const App = () => {
 
   return (
     <Routes>
-      <Route path="/edit-audios" element={<EditAudiosPage />} />
-
       <Route element={<GuestGuard />}>
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<LoginPage />} />
@@ -36,11 +35,14 @@ export const App = () => {
         </Route>
       </Route>
 
-      <Route element={<AuthGuard />}>
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/search" element={<SearchPage />} />
-        <Route path="/library" element={<LibraryPage />} />
-        <Route path="/library/:playlistId" element={<PlaylistPage />} />
+      <Route element={<Layout />}>
+        <Route element={<AuthGuard />}>
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/library" element={<LibraryPage />} />
+          <Route path="/library/:playlistId" element={<PlaylistPage />} />
+        </Route>
+        <Route path="/edit-audios" element={<EditAudiosPage />} />
       </Route>
 
       <Route path="/" element={<Navigate to="/home" replace />} />

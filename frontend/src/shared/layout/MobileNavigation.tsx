@@ -2,7 +2,6 @@ import { NavLink } from "react-router-dom";
 
 const navigationItems = [
   { to: "/home", label: "Home", icon: "⌂" },
-  { to: "/search", label: "Search", icon: "⌕" },
   { to: "/library", label: "Library", icon: "♫" },
   { to: "/edit-audios", label: "Manage", icon: "⚙" },
 ];
@@ -11,7 +10,7 @@ export function MobileNavigation() {
   return (
     <nav
       aria-label="Main navigation"
-      className="grid grid-cols-4 gap-1 rounded-xl bg-zinc-900 p-1 md:hidden"
+      className="grid grid-cols-3 gap-1 rounded-xl bg-zinc-900 p-1 md:hidden"
     >
       {navigationItems.map(({ to, label, icon }) => (
         <NavLink

@@ -6,7 +6,7 @@ interface PlaylistTrackListProps {
   isRemovingTrack: boolean;
   onPlayTrack: (track: Track) => void;
   onMoveTrack: (index: number, direction: -1 | 1) => void;
-  onRemoveTrack: (trackId: number) => void;
+  onRemoveTrack: (track: Track) => void;
 }
 
 export function PlaylistTrackList({
@@ -29,18 +29,24 @@ export function PlaylistTrackList({
     <div className="divide-y divide-white/10">
       {tracks.map((track, index) => (
         <article
-          className="group grid playlist-track-grid items-center gap-3 rounded px-2 py-3 text-sm hover:bg-white/5"
+          className={`group grid playlist-track-grid items-center gap-3 rounded px-2 py-3 text-sm hover:bg-white/5 ${track.audioAvailable ? "" : "opacity-45"}`}
           key={track.id}
         >
           <button
             aria-label={`Play ${track.title} by ${track.artist}`}
-            className="text-zinc-500 hover:text-white"
+            className="text-zinc-500 hover:text-white disabled:cursor-not-allowed"
+            disabled={!track.audioAvailable}
             onClick={() => {
               onPlayTrack(track);
             }}
             type="button"
+            title={
+              track.audioAvailable
+                ? "Play track"
+                : "Audio file is missing on this server"
+            }
           >
-            {index + 1}
+            {track.audioAvailable ? index + 1 : "×"}
           </button>
           <div className="min-w-0">
             <h2 className="truncate font-medium text-white">{track.title}</h2>
@@ -74,7 +80,7 @@ export function PlaylistTrackList({
               className="px-2 text-zinc-500 hover:text-red-400"
               disabled={isRemovingTrack}
               onClick={() => {
-                onRemoveTrack(track.id);
+                onRemoveTrack(track);
               }}
               type="button"
             >

@@ -9,6 +9,10 @@ import { basename, resolve } from "node:path";
 import { Readable } from "node:stream";
 import { parseByteRange } from "../storage/byte-range";
 import { TRACK_STORAGE_DIRECTORY } from "../storage/track-storage.paths";
+import {
+  isMissingFileError,
+  isStoredFileAvailable,
+} from "../storage/stored-file.utils";
 
 export interface AudioStream {
   stream: Readable;
@@ -18,6 +22,10 @@ export interface AudioStream {
 
 @Injectable()
 export class TrackStorageService {
+  async isAvailable(filename: string): Promise<boolean> {
+    return isStoredFileAvailable(TRACK_STORAGE_DIRECTORY, filename);
+  }
+
   async openStream(filename: string, range?: string): Promise<AudioStream> {
     const safeFilename = basename(filename);
 
@@ -30,8 +38,11 @@ export class TrackStorageService {
 
     try {
       fileStats = await stat(path);
-    } catch {
-      throw new NotFoundException("Audio file not found");
+    } catch (error) {
+      if (isMissingFileError(error)) {
+        throw new NotFoundException("Audio file not found");
+      }
+      throw error;
     }
 
     if (!fileStats.isFile()) {
@@ -100,13 +111,4 @@ export class TrackStorageService {
       },
     );
   }
-}
-
-function isMissingFileError(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === "ENOENT"
-  );
 }

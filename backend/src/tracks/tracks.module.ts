@@ -24,6 +24,6 @@ import { TrackCoverStorageService } from "./services/track-cover-storage.service
     TracksService,
     TrackStorageService,
   ],
-  exports: [TracksService],
+  exports: [TracksService, TrackStorageService, TrackCoverStorageService],
 })
 export class TracksModule {}

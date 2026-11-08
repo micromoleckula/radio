@@ -9,7 +9,6 @@ interface ManagedTrackListProps {
   isLoading: boolean;
   isError: boolean;
   error?: Error | null;
-  deleteError?: Error | null;
   isDeleting: boolean;
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
@@ -24,7 +23,6 @@ export function ManagedTrackList({
   isLoading,
   isError,
   error,
-  deleteError,
   isDeleting,
   hasNextPage,
   isFetchingNextPage,
@@ -45,7 +43,6 @@ export function ManagedTrackList({
         <p className="text-sm text-zinc-400">Loading audio files...</p>
       )}
       {isError && error && <Notice tone="error">{error.message}</Notice>}
-      {deleteError && <Notice tone="error">{deleteError.message}</Notice>}
       {!isLoading && tracks.length === 0 && (
         <EmptyState
           description="Add an MP3 file to start building your library."

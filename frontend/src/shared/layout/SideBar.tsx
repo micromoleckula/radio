@@ -18,7 +18,6 @@ export const Sidebar = () => {
           Discover
         </p>
         <ButtonSidebar to="/home">Home</ButtonSidebar>
-        <ButtonSidebar to="/search">Search</ButtonSidebar>
         <p className="mb-2 mt-7 px-3 text-caption font-semibold uppercase tracking-kicker text-zinc-600">
           Your space
         </p>

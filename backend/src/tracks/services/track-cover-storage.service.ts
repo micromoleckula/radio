@@ -16,9 +16,17 @@ import {
   MAX_COVER_SIZE_MEBIBYTES,
 } from "../domain/track.constants";
 import { COVER_STORAGE_DIRECTORY } from "../storage/track-storage.paths";
+import {
+  isMissingFileError,
+  isStoredFileAvailable,
+} from "../storage/stored-file.utils";
 
 @Injectable()
 export class TrackCoverStorageService {
+  async isAvailable(filename: string | null): Promise<boolean> {
+    return isStoredFileAvailable(COVER_STORAGE_DIRECTORY, filename);
+  }
+
   async save(data: Uint8Array, mimeType: string): Promise<string> {
     const { fileTypeFromBuffer } = await import("file-type");
     const detectedType = await fileTypeFromBuffer(data);
@@ -59,8 +67,11 @@ export class TrackCoverStorageService {
 
     try {
       fileStats = await stat(path);
-    } catch {
-      throw new NotFoundException("Cover image not found");
+    } catch (error) {
+      if (isMissingFileError(error)) {
+        throw new NotFoundException("Cover image not found");
+      }
+      throw error;
     }
 
     if (!fileStats.isFile()) {
@@ -96,13 +107,4 @@ export class TrackCoverStorageService {
       },
     );
   }
-}
-
-function isMissingFileError(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === "ENOENT"
-  );
 }

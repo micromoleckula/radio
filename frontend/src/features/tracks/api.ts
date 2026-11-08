@@ -8,6 +8,7 @@ export interface Track {
   album: string | null;
   durationSeconds: number;
   createdAt: string;
+  audioAvailable: boolean;
   coverAvailable: boolean;
 }
 

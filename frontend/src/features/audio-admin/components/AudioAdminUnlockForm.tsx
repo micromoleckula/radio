@@ -16,7 +16,7 @@ export function AudioAdminUnlockForm({
   onSubmit,
 }: AudioAdminUnlockFormProps) {
   return (
-    <main className="grid min-h-screen place-items-center bg-app-background px-4 text-white">
+    <section className="grid min-h-full place-items-center px-4 py-8 text-white">
       <form
         className="w-full max-w-sm space-y-5 rounded-lg border border-white/10 bg-panel-background p-6"
         onSubmit={onSubmit}
@@ -55,6 +55,6 @@ export function AudioAdminUnlockForm({
           {isPending ? "Checking..." : "Unlock"}
         </button>
       </form>
-    </main>
+    </section>
   );
 }

@@ -18,6 +18,7 @@ export interface TrackListItem {
   album: string | null;
   durationSeconds: number;
   createdAt: Date;
+  audioAvailable: boolean;
   coverAvailable: boolean;
 }
 

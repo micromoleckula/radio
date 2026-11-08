@@ -7,6 +7,7 @@ export interface PlaylistSummary {
   title: string;
   createdAt: string;
   trackCount: number;
+  containsTrack?: boolean;
 }
 
 export interface PlaylistDetail extends Omit<PlaylistSummary, "trackCount"> {
@@ -20,11 +21,18 @@ export interface PlaylistListResponse {
   offset: number;
 }
 
-export function fetchPlaylists(offset: number): Promise<PlaylistListResponse> {
+export function fetchPlaylists(
+  offset: number,
+  trackId?: number,
+): Promise<PlaylistListResponse> {
   const params = new URLSearchParams({
     limit: String(PLAYLISTS_PAGE_SIZE),
     offset: String(offset),
   });
+
+  if (trackId !== undefined) {
+    params.set("trackId", String(trackId));
+  }
 
   return apiGet<PlaylistListResponse>(`/playlists?${params.toString()}`, true);
 }

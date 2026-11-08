@@ -2,10 +2,13 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { queryKeys } from "../../../shared/lib/queryKeys";
 import { fetchPlaylists } from "../api";
 
-export function usePlaylists(enabled = true) {
+export function usePlaylists(enabled = true, trackId?: number) {
   return useInfiniteQuery({
-    queryKey: queryKeys.playlists,
-    queryFn: ({ pageParam }) => fetchPlaylists(pageParam),
+    queryKey:
+      trackId === undefined
+        ? queryKeys.playlists
+        : queryKeys.playlistsForTrack(trackId),
+    queryFn: ({ pageParam }) => fetchPlaylists(pageParam, trackId),
     initialPageParam: 0,
     getNextPageParam: (lastPage) => {
       const nextOffset = lastPage.offset + lastPage.limit;

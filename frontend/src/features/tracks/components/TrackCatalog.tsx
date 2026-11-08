@@ -103,18 +103,36 @@ export const TrackCatalog = ({ title, query = "" }: TrackCatalogProps) => {
           <div className="divide-y divide-white-5">
             {tracks.map((track, index) => (
               <article
-                className={`group grid ${gridColumns} items-center gap-3 px-2 py-3 text-sm transition-colors hover:bg-white-4 sm:px-3`}
+                className={`group grid ${gridColumns} items-center gap-3 px-2 py-3 text-sm transition-colors hover:bg-white-4 sm:px-3 ${track.audioAvailable ? "" : "opacity-45"}`}
                 key={track.id}
               >
                 <button
                   aria-label={`Play ${track.title} by ${track.artist}`}
-                  className={`text-center ${activeTrackId === track.id ? "text-emerald-400" : "text-zinc-500 group-hover:text-white"}`}
+                  className={`grid size-8 place-items-center rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-400 disabled:cursor-not-allowed ${activeTrackId === track.id ? "text-emerald-400" : "text-zinc-500 hover:bg-white/10 hover:text-white group-hover:text-white"}`}
+                  disabled={!track.audioAvailable}
                   onClick={() => {
                     playTrack(track, tracks);
                   }}
                   type="button"
+                  title={
+                    track.audioAvailable
+                      ? "Play track"
+                      : "Audio file is missing on this server"
+                  }
                 >
-                  {activeTrackId === track.id ? "▶" : index + 1}
+                  <span className="group-hover:hidden group-focus-within:hidden">
+                    {activeTrackId === track.id ? "▶" : index + 1}
+                  </span>
+                  <svg
+                    aria-hidden="true"
+                    className="hidden group-hover:block group-focus-within:block"
+                    fill="currentColor"
+                    viewBox="0 0 16 16"
+                    width="14"
+                    height="14"
+                  >
+                    <path d="M4.5 2.7a.7.7 0 0 1 1.05-.6l7.2 4.3a.7.7 0 0 1 0 1.2l-7.2 4.3a.7.7 0 0 1-1.05-.6V2.7Z" />
+                  </svg>
                 </button>
                 <TrackCover
                   available={track.coverAvailable}

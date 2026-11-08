@@ -14,6 +14,7 @@ export function useAudioAdminPage() {
   const logout = useAudioAdminStore((state) => state.logout);
   const [password, setPassword] = useState("");
   const [editingTrack, setEditingTrack] = useState<Track | null>(null);
+  const [trackToDelete, setTrackToDelete] = useState<Track | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const queryClient = useQueryClient();
   const tracks = useTracks();
@@ -37,7 +38,12 @@ export function useAudioAdminPage() {
   const deleteTrack = useMutation({
     mutationFn: deleteManagedTrack,
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.tracks() });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.tracks() }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.playlists }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.playlistPrefix }),
+      ]);
+      setTrackToDelete(null);
     },
   });
   const allTracks = tracks.data?.pages.flatMap((page) => page.items) ?? [];
@@ -57,9 +63,14 @@ export function useAudioAdminPage() {
     setEditingTrack(track);
   };
 
-  const confirmDeleteTrack = (track: Track) => {
-    if (window.confirm(`Delete “${track.title}”?`)) {
-      deleteTrack.mutate(track.id);
+  const requestDeleteTrack = (track: Track) => {
+    deleteTrack.reset();
+    setTrackToDelete(track);
+  };
+
+  const confirmDeleteTrack = () => {
+    if (trackToDelete) {
+      deleteTrack.mutate(trackToDelete.id);
     }
   };
 
@@ -78,9 +89,15 @@ export function useAudioAdminPage() {
     isDeleting: deleteTrack.isPending,
     isCreating,
     editingTrack,
+    trackToDelete,
     toggleCreateForm,
     startEditingTrack,
+    requestDeleteTrack,
     confirmDeleteTrack,
+    cancelDeleteTrack: () => {
+      setTrackToDelete(null);
+      deleteTrack.reset();
+    },
     closeCreateForm: () => {
       setIsCreating(false);
     },
