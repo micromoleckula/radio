@@ -19,6 +19,7 @@ import {
 import type { Response } from "express";
 import { CreateTrackDto } from "../dto/create-track.dto";
 import { ListTracksDto } from "../dto/list-tracks.dto";
+import { TrackListResponseDto } from "../dto/track-list-response.dto";
 import { UpdateTrackDto } from "../dto/update-track.dto";
 import { AudioAdminGuard } from "../guards/audio-admin.guard";
 import {
@@ -26,14 +27,14 @@ import {
   trackUploadInterceptor,
 } from "../storage/track-upload.config";
 import { TracksService } from "../services/tracks.service";
-import type { TrackListItem, TrackListResponse } from "../domain/tracks.types";
+import type { TrackListItem } from "../domain/tracks.types";
 
 @Controller("tracks")
 export class TracksController {
   constructor(private readonly tracksService: TracksService) {}
 
   @Get()
-  list(@Query() query: ListTracksDto): Promise<TrackListResponse> {
+  list(@Query() query: ListTracksDto): Promise<TrackListResponseDto> {
     return this.tracksService.list(query);
   }
 
@@ -61,7 +62,11 @@ export class TracksController {
       | { audio?: Express.Multer.File[]; cover?: Express.Multer.File[] }
       | undefined,
   ): Promise<TrackListItem> {
-    return this.tracksService.update(id, dto, toTrackUploadFiles(files ?? {}));
+    return this.tracksService.updateTrackData(
+      id,
+      dto,
+      toTrackUploadFiles(files ?? {}),
+    );
   }
 
   @UseGuards(AudioAdminGuard)

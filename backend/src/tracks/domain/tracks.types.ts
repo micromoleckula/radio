@@ -21,10 +21,3 @@ export interface TrackListItem {
   audioAvailable: boolean;
   coverAvailable: boolean;
 }
-
-export interface TrackListResponse {
-  items: TrackListItem[];
-  total: number;
-  limit: number;
-  offset: number;
-}

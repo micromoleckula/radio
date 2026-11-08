@@ -3,6 +3,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { CreateTrackDto } from "../dto/create-track.dto";
 import { ListTracksDto } from "../dto/list-tracks.dto";
+import { TrackListResponseDto } from "../dto/track-list-response.dto";
 import { UpdateTrackDto } from "../dto/update-track.dto";
 import { Track } from "../entities/track.entity";
 import { toTrackListItem } from "../domain/track.mapper";
@@ -11,7 +12,6 @@ import { TrackStorageService, type AudioStream } from "./track-storage.service";
 import { TrackManagementService } from "./track-management.service";
 import type {
   TrackListItem,
-  TrackListResponse,
   TrackUploadFiles,
 } from "../domain/tracks.types";
 
@@ -25,7 +25,7 @@ export class TracksService {
     private readonly trackManagement: TrackManagementService,
   ) {}
 
-  async list(query: ListTracksDto): Promise<TrackListResponse> {
+  async list(query: ListTracksDto): Promise<TrackListResponseDto> {
     const search = query.q ? `%${escapeLikePattern(query.q)}%` : undefined;
     const queryBuilder = this.trackRepository
       .createQueryBuilder("track")
@@ -44,8 +44,8 @@ export class TracksService {
 
     const [tracks, total] = await queryBuilder.getManyAndCount();
 
-    return {
-      items: await Promise.all(
+    return new TrackListResponseDto(
+      await Promise.all(
         tracks.map(async (track) =>
           toTrackListItem(
             track,
@@ -55,21 +55,21 @@ export class TracksService {
         ),
       ),
       total,
-      limit: query.limit,
-      offset: query.offset,
-    };
+      query.limit,
+      query.offset,
+    );
   }
 
   create(dto: CreateTrackDto, files: TrackUploadFiles): Promise<TrackListItem> {
     return this.trackManagement.create(dto, files);
   }
 
-  update(
+  updateTrackData(
     trackId: number,
     dto: UpdateTrackDto,
     files: TrackUploadFiles,
   ): Promise<TrackListItem> {
-    return this.trackManagement.update(trackId, dto, files);
+    return this.trackManagement.updateTrackData(trackId, dto, files);
   }
 
   delete(trackId: number): Promise<void> {

@@ -7,6 +7,7 @@ import { Playlist } from "./entities/playlist.entity";
 import { PlaylistTrack } from "./entities/playlist-track.entity";
 import { PlaylistsController } from "./playlists.controller";
 import { PlaylistsService } from "./playlists.service";
+import { PlaylistTrackQueriesRepository } from "./repositories/playlist-track-queries.repository";
 
 @Module({
   imports: [
@@ -14,6 +15,6 @@ import { PlaylistsService } from "./playlists.service";
     TracksModule,
   ],
   controllers: [PlaylistsController],
-  providers: [PlaylistsService],
+  providers: [PlaylistsService, PlaylistTrackQueriesRepository],
 })
 export class PlaylistsModule {}

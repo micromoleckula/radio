@@ -3,7 +3,7 @@ import type { TrackListItem } from "./tracks.types";
 
 export function toTrackListItem(
   track: Track,
-  audioAvailable = true,
+  audioAvailable: boolean,
   coverAvailable = Boolean(track.coverPath),
 ): TrackListItem {
   return {

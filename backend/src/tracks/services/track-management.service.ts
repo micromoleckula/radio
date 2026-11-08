@@ -5,7 +5,7 @@ import {
 } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { basename, extname } from "node:path";
-import { Repository } from "typeorm";
+import { Repository, type DeepPartial } from "typeorm";
 import { CreateTrackDto } from "../dto/create-track.dto";
 import { UpdateTrackDto } from "../dto/update-track.dto";
 import { Track } from "../entities/track.entity";
@@ -54,19 +54,7 @@ export class TrackManagementService {
 
     try {
       const metadata = await this.readMetadata(files.audio.path);
-      const durationSeconds = metadata.durationSeconds;
-
-      if (!durationSeconds) {
-        throw new BadRequestException(
-          "Could not determine a valid track duration from the audio file",
-        );
-      }
-
-      if (durationSeconds > MAX_TRACK_DURATION_SECONDS) {
-        throw new BadRequestException(
-          "Track duration must not exceed one hour",
-        );
-      }
+      const durationSeconds = this.validateAudioMetadata(metadata);
 
       if (!files.cover && metadata.cover) {
         coverPath = await this.coverStorage.save(
@@ -92,7 +80,7 @@ export class TrackManagementService {
         }),
       );
 
-      return toTrackListItem(savedTrack);
+      return toTrackListItem(savedTrack, true);
     } catch (error) {
       await this.cleanupUploadedFiles(files);
       if (coverPath && coverPath !== files.cover?.filename) {
@@ -102,7 +90,7 @@ export class TrackManagementService {
     }
   }
 
-  async update(
+  async updateTrackData(
     trackId: number,
     dto: UpdateTrackDto,
     files: TrackUploadFiles,
@@ -128,21 +116,9 @@ export class TrackManagementService {
       const metadata = files.audio
         ? await this.readMetadata(files.audio.path)
         : null;
-      const durationSeconds = files.audio
-        ? metadata?.durationSeconds
+      const durationSeconds = metadata
+        ? this.validateAudioMetadata(metadata)
         : track.durationSeconds;
-
-      if (!durationSeconds) {
-        throw new BadRequestException(
-          "Could not determine a valid track duration from the audio file",
-        );
-      }
-
-      if (durationSeconds > MAX_TRACK_DURATION_SECONDS) {
-        throw new BadRequestException(
-          "Track duration must not exceed one hour",
-        );
-      }
 
       if (files.audio && !files.cover && metadata?.cover) {
         nextCoverPath = await this.coverStorage.save(
@@ -151,27 +127,16 @@ export class TrackManagementService {
         );
       }
 
-      updatedTrack = await this.trackRepository.save({
-        id: track.id,
-        title:
-          dto.title?.trim() ||
-          metadata?.title ||
-          (files.audio
-            ? basename(
-                files.audio.originalname,
-                extname(files.audio.originalname),
-              )
-            : track.title),
-        artist: dto.artist?.trim() || metadata?.artist || track.artist,
-        album:
-          dto.album !== undefined
-            ? dto.album.trim() || null
-            : metadata?.album || track.album,
-        durationSeconds,
-        audioPath: files.audio?.filename ?? track.audioPath,
-        coverPath: nextCoverPath,
-        createdAt: track.createdAt,
-      });
+      updatedTrack = await this.trackRepository.save(
+        this.buildTrackUpdateData({
+          track,
+          dto,
+          metadata,
+          audioFile: files.audio,
+          durationSeconds,
+          coverPath: nextCoverPath,
+        }),
+      );
     } catch (error) {
       await this.cleanupUploadedFiles(files);
       if (
@@ -193,7 +158,11 @@ export class TrackManagementService {
     }
     await Promise.allSettled(replacedFiles);
 
-    return toTrackListItem(updatedTrack);
+    return toTrackListItem(
+      updatedTrack,
+      await this.trackStorage.isAvailable(updatedTrack.audioPath),
+      await this.coverStorage.isAvailable(updatedTrack.coverPath),
+    );
   }
 
   async delete(trackId: number): Promise<void> {
@@ -227,6 +196,66 @@ export class TrackManagementService {
     } catch {
       throw new BadRequestException("Unable to read audio metadata");
     }
+  }
+
+  private validateAudioMetadata(metadata: ExtractedTrackMetadata): number {
+    const durationSeconds = metadata.durationSeconds;
+
+    if (
+      durationSeconds === null ||
+      !Number.isFinite(durationSeconds) ||
+      durationSeconds <= 0
+    ) {
+      throw new BadRequestException(
+        "Could not determine a valid track duration from the audio file",
+      );
+    }
+
+    if (durationSeconds > MAX_TRACK_DURATION_SECONDS) {
+      throw new BadRequestException(
+        "Track duration must not exceed one hour",
+      );
+    }
+
+    return durationSeconds;
+  }
+
+  private buildTrackUpdateData({
+    track,
+    dto,
+    metadata,
+    audioFile,
+    durationSeconds,
+    coverPath,
+  }: {
+    track: Track;
+    dto: UpdateTrackDto;
+    metadata: ExtractedTrackMetadata | null;
+    audioFile: TrackUploadFiles["audio"];
+    durationSeconds: number;
+    coverPath: string | null;
+  }): DeepPartial<Track> {
+    return {
+      id: track.id,
+      title:
+        dto.title?.trim() ||
+        metadata?.title ||
+        (audioFile
+          ? basename(
+              audioFile.originalname,
+              extname(audioFile.originalname),
+            )
+          : track.title),
+      artist: dto.artist?.trim() || metadata?.artist || track.artist,
+      album:
+        dto.album !== undefined
+          ? dto.album.trim() || null
+          : metadata?.album || track.album,
+      durationSeconds,
+      audioPath: audioFile?.filename ?? track.audioPath,
+      coverPath,
+      createdAt: track.createdAt,
+    };
   }
 
   private async cleanupUploadedFiles(files: TrackUploadFiles): Promise<void> {

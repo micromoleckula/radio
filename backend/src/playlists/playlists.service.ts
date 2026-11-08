@@ -8,32 +8,22 @@ import { DataSource, Repository } from "typeorm";
 import { User } from "../auth/entities/user.entity";
 import { Track } from "../tracks/entities/track.entity";
 import { toTrackListItem } from "../tracks/domain/track.mapper";
-import type { TrackListItem } from "../tracks/domain/tracks.types";
 import { TrackCoverStorageService } from "../tracks/services/track-cover-storage.service";
 import { TrackStorageService } from "../tracks/services/track-storage.service";
 import { CreatePlaylistDto } from "./dto/create-playlist.dto";
 import { ListPlaylistsDto } from "./dto/list-playlists.dto";
+import {
+  PlaylistDetailDto,
+  PlaylistListResponseDto,
+  PlaylistSummaryDto,
+} from "./dto/playlist-response.dto";
 import { PlaylistTrack } from "./entities/playlist-track.entity";
 import { Playlist } from "./entities/playlist.entity";
-
-export interface PlaylistSummary {
-  id: number;
-  title: string;
-  createdAt: Date;
-  trackCount: number;
-  containsTrack?: boolean;
-}
-
-export interface PlaylistDetail extends Omit<PlaylistSummary, "trackCount"> {
-  tracks: TrackListItem[];
-}
-
-export interface PlaylistListResponse {
-  items: PlaylistSummary[];
-  total: number;
-  limit: number;
-  offset: number;
-}
+import { PlaylistTrackQueriesRepository } from "./repositories/playlist-track-queries.repository";
+import {
+  toPlaylistDetailDto,
+  toPlaylistSummaryDto,
+} from "./domain/playlist-response.mapper";
 
 @Injectable()
 export class PlaylistsService {
@@ -48,6 +38,7 @@ export class PlaylistsService {
     private readonly trackRepository: Repository<Track>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly playlistTrackQueries: PlaylistTrackQueriesRepository,
     private readonly trackStorage: TrackStorageService,
     private readonly coverStorage: TrackCoverStorageService,
   ) {}
@@ -55,7 +46,7 @@ export class PlaylistsService {
   async list(
     ownerId: number,
     query: ListPlaylistsDto,
-  ): Promise<PlaylistListResponse> {
+  ): Promise<PlaylistListResponseDto> {
     const [playlists, total] = await this.playlistRepository.findAndCount({
       where: { ownerId },
       order: { createdAt: "DESC", id: "DESC" },
@@ -64,63 +55,44 @@ export class PlaylistsService {
     });
     const playlistIds = playlists.map((playlist) => playlist.id);
     const trackCounts =
-      playlistIds.length > 0
-        ? await this.playlistTrackRepository
-            .createQueryBuilder("playlistTrack")
-            .select("playlistTrack.playlistId", "playlistId")
-            .addSelect("COUNT(*)", "trackCount")
-            .where("playlistTrack.playlistId IN (:...playlistIds)", {
-              playlistIds,
-            })
-            .groupBy("playlistTrack.playlistId")
-            .getRawMany<{
-              playlistId: number;
-              trackCount: string;
-            }>()
-        : [];
+      await this.playlistTrackQueries.getTrackCountsByPlaylistIds(playlistIds);
     const trackCountByPlaylistId = new Map(
       trackCounts.map(({ playlistId, trackCount }) => [
         playlistId,
         Number(trackCount),
       ]),
     );
-    const playlistsContainingTrack =
-      query.trackId !== undefined && playlistIds.length > 0
-        ? await this.playlistTrackRepository
-            .createQueryBuilder("playlistTrack")
-            .select("playlistTrack.playlistId", "playlistId")
-            .where("playlistTrack.playlistId IN (:...playlistIds)", {
+    const playlistIdsContainingTrack =
+      query.trackId === undefined
+        ? new Set<number>()
+        : new Set(
+            await this.playlistTrackQueries.getPlaylistIdsContainingTrack(
               playlistIds,
-            })
-            .andWhere("playlistTrack.trackId = :trackId", {
-              trackId: query.trackId,
-            })
-            .getRawMany<{ playlistId: number }>()
-        : [];
-    const playlistIdsContainingTrack = new Set(
-      playlistsContainingTrack.map(({ playlistId }) => playlistId),
-    );
+              query.trackId,
+            ),
+          );
 
-    return {
-      items: playlists.map((playlist) => ({
-        id: playlist.id,
-        title: playlist.title,
-        createdAt: playlist.createdAt,
-        trackCount: trackCountByPlaylistId.get(playlist.id) ?? 0,
-        ...(query.trackId !== undefined && {
-          containsTrack: playlistIdsContainingTrack.has(playlist.id),
-        }),
-      })),
+    return new PlaylistListResponseDto({
+      items: playlists.map(
+        (playlist) =>
+          toPlaylistSummaryDto(
+            playlist,
+            trackCountByPlaylistId.get(playlist.id) ?? 0,
+            query.trackId === undefined
+              ? undefined
+              : playlistIdsContainingTrack.has(playlist.id),
+          ),
+      ),
       total,
       limit: query.limit,
       offset: query.offset,
-    };
+    });
   }
 
   async create(
     ownerId: number,
     dto: CreatePlaylistDto,
-  ): Promise<PlaylistSummary> {
+  ): Promise<PlaylistSummaryDto> {
     const ownerExists = await this.userRepository.existsBy({ id: ownerId });
 
     if (!ownerExists) {
@@ -131,15 +103,10 @@ export class PlaylistsService {
       this.playlistRepository.create({ title: dto.title, ownerId }),
     );
 
-    return {
-      id: playlist.id,
-      title: playlist.title,
-      createdAt: playlist.createdAt,
-      trackCount: 0,
-    };
+    return toPlaylistSummaryDto(playlist, 0);
   }
 
-  async get(ownerId: number, playlistId: number): Promise<PlaylistDetail> {
+  async get(ownerId: number, playlistId: number): Promise<PlaylistDetailDto> {
     const playlist = await this.playlistRepository
       .createQueryBuilder("playlist")
       .leftJoinAndSelect("playlist.playlistTracks", "playlistTrack")
@@ -155,11 +122,9 @@ export class PlaylistsService {
       throw new NotFoundException("Playlist not found");
     }
 
-    return {
-      id: playlist.id,
-      title: playlist.title,
-      createdAt: playlist.createdAt,
-      tracks: await Promise.all(
+    return toPlaylistDetailDto(
+      playlist,
+      await Promise.all(
         playlist.playlistTracks.map(async ({ track }) =>
           toTrackListItem(
             track,
@@ -168,14 +133,14 @@ export class PlaylistsService {
           ),
         ),
       ),
-    };
+    );
   }
 
   async rename(
     ownerId: number,
     playlistId: number,
     dto: CreatePlaylistDto,
-  ): Promise<PlaylistDetail> {
+  ): Promise<PlaylistDetailDto> {
     const playlist = await this.requireOwnedPlaylist(ownerId, playlistId);
     playlist.title = dto.title;
     await this.playlistRepository.save(playlist);
@@ -197,7 +162,7 @@ export class PlaylistsService {
     ownerId: number,
     playlistId: number,
     trackId: number,
-  ): Promise<PlaylistDetail> {
+  ): Promise<PlaylistDetailDto> {
     await this.requireOwnedPlaylist(ownerId, playlistId);
     const trackExists = await this.trackRepository.existsBy({ id: trackId });
 
@@ -220,7 +185,7 @@ export class PlaylistsService {
     ownerId: number,
     playlistId: number,
     trackId: number,
-  ): Promise<PlaylistDetail> {
+  ): Promise<PlaylistDetailDto> {
     await this.requireOwnedPlaylist(ownerId, playlistId);
     await this.playlistTrackRepository.delete({ playlistId, trackId });
     return this.get(ownerId, playlistId);
@@ -230,7 +195,7 @@ export class PlaylistsService {
     ownerId: number,
     playlistId: number,
     trackIds: number[],
-  ): Promise<PlaylistDetail> {
+  ): Promise<PlaylistDetailDto> {
     await this.requireOwnedPlaylist(ownerId, playlistId);
     const currentTracks = await this.playlistTrackRepository.find({
       where: { playlistId },

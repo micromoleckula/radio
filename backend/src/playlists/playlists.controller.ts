@@ -18,11 +18,11 @@ import { CreatePlaylistDto } from "./dto/create-playlist.dto";
 import { ListPlaylistsDto } from "./dto/list-playlists.dto";
 import { ReorderPlaylistDto } from "./dto/reorder-playlist.dto";
 import {
-  PlaylistsService,
-  type PlaylistListResponse,
-  type PlaylistDetail,
-  type PlaylistSummary,
-} from "./playlists.service";
+  PlaylistDetailDto,
+  PlaylistListResponseDto,
+  PlaylistSummaryDto,
+} from "./dto/playlist-response.dto";
+import { PlaylistsService } from "./playlists.service";
 
 @Controller("playlists")
 @UseGuards(JwtAuthGuard)
@@ -33,7 +33,7 @@ export class PlaylistsController {
   list(
     @CurrentUser() user: AuthenticatedUser,
     @Query() query: ListPlaylistsDto,
-  ): Promise<PlaylistListResponse> {
+  ): Promise<PlaylistListResponseDto> {
     return this.playlistsService.list(user.userId, query);
   }
 
@@ -41,7 +41,7 @@ export class PlaylistsController {
   create(
     @CurrentUser() user: AuthenticatedUser,
     @Body() dto: CreatePlaylistDto,
-  ): Promise<PlaylistSummary> {
+  ): Promise<PlaylistSummaryDto> {
     return this.playlistsService.create(user.userId, dto);
   }
 
@@ -49,7 +49,7 @@ export class PlaylistsController {
   get(
     @CurrentUser() user: AuthenticatedUser,
     @Param("id", ParseIntPipe) playlistId: number,
-  ): Promise<PlaylistDetail> {
+  ): Promise<PlaylistDetailDto> {
     return this.playlistsService.get(user.userId, playlistId);
   }
 
@@ -58,7 +58,7 @@ export class PlaylistsController {
     @CurrentUser() user: AuthenticatedUser,
     @Param("id", ParseIntPipe) playlistId: number,
     @Body() dto: CreatePlaylistDto,
-  ): Promise<PlaylistDetail> {
+  ): Promise<PlaylistDetailDto> {
     return this.playlistsService.rename(user.userId, playlistId, dto);
   }
 
@@ -76,7 +76,7 @@ export class PlaylistsController {
     @CurrentUser() user: AuthenticatedUser,
     @Param("id", ParseIntPipe) playlistId: number,
     @Param("trackId", ParseIntPipe) trackId: number,
-  ): Promise<PlaylistDetail> {
+  ): Promise<PlaylistDetailDto> {
     return this.playlistsService.addTrack(user.userId, playlistId, trackId);
   }
 
@@ -85,7 +85,7 @@ export class PlaylistsController {
     @CurrentUser() user: AuthenticatedUser,
     @Param("id", ParseIntPipe) playlistId: number,
     @Param("trackId", ParseIntPipe) trackId: number,
-  ): Promise<PlaylistDetail> {
+  ): Promise<PlaylistDetailDto> {
     return this.playlistsService.removeTrack(user.userId, playlistId, trackId);
   }
 
@@ -94,7 +94,7 @@ export class PlaylistsController {
     @CurrentUser() user: AuthenticatedUser,
     @Param("id", ParseIntPipe) playlistId: number,
     @Body() dto: ReorderPlaylistDto,
-  ): Promise<PlaylistDetail> {
+  ): Promise<PlaylistDetailDto> {
     return this.playlistsService.reorderTracks(
       user.userId,
       playlistId,
