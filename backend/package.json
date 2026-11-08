@@ -4,7 +4,7 @@
   "packageManager": "npm@10.8.0",
   "scripts": {
     "dev": "nest start --watch",
-    "build": "nest build",
+    "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && nest build",
     "lint": "eslint src",
     "postinstall": "npm run migration:run",
     "migration:generate": "npm run build && typeorm migration:generate -d dist/database/data-source.js",
